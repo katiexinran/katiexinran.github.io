@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.egg-info/
+*.log
+
+# Virtual environments
+env/
+venv/
+.cs571hw2/
+*.env
+*.venv
+*.idea/
+*.vscode/
+
+# Google Cloud SDK
+google-cloud-sdk/
+.cloud/
+.config/gcloud/
+
+# Node (in case you use frontend later)
+node_modules/
+
+# macOS
+.DS_Store
+
+# VSCode
+.vscode/
