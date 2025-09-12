@@ -1,3 +1,7 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 /* background */
 body {
   margin: 0;
@@ -7,10 +11,7 @@ body {
 }
 .page-bg {
   position: fixed; inset: 0;
-  background:
-    radial-gradient(1200px 600px at 50% 100%, rgba(255,130,0,.25), transparent 60%),
-    radial-gradient(900px 500px at 10% 0%, rgba(0,180,255,.18), transparent 60%),
-    #0f1115 url('https://images.unsplash.com/photo-1482192505345-5655af888cc4?auto=format&fit=crop&w=1600&q=60') center/cover no-repeat;
+  background: #1e1e1e;
   filter: brightness(.6) saturate(.9);
   z-index: -1;
 }
@@ -42,10 +43,13 @@ hr {
 /* layout */
 .grid {
   display: grid;
-  grid-template-columns: 1fr 220px 1fr;
+  grid-template-columns: 180px 1fr; /* 2 columns */
   gap: 16px 18px;
 }
-.field-full { grid-column: 1 / -1; }
+
+.field-full {
+    grid-column: 1 / -1;
+}
 
 .field label {
   display: block;
@@ -53,7 +57,18 @@ hr {
   font-size: 14px;
   margin: 2px 0 6px;
 }
-.req { color: #ff7a00; }
+
+.field label.checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    margin: 0;
+}
+
+.req {
+    color: #ff0000;
+}
 
 input, select {
   width: 100%;
@@ -70,19 +85,31 @@ input:focus, select:focus {
   box-shadow: 0 0 0 3px rgba(102,184,255,.18);
 }
 
-/* checkbox */
+/* location label + checkbox inline */
+.location-label {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  justify-content: flex-start;
+  margin-bottom: 6px;
+}
 .checkbox {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  color: #c7cbd3;
+  gap: 6px;
   font-size: 13px;
+  color: #c7cbd3;
 }
-.hint { font-size: 12px; color: #aab0bb; margin-top: 6px; }
+
+/* hint text */
+.hint {
+    font-size: 12px; color: #aab0bb; margin-top: 6px;
+}
 
 /* buttons */
-.actions { display: flex; gap: 12px; justify-content: center; margin-top: 18px; }
+.actions {
+    display: flex; gap: 12px; justify-content: center; margin-top: 18px;
+}
 .btn {
   padding: 10px 18px;
   border-radius: 12px;
@@ -96,9 +123,20 @@ input:focus, select:focus {
   background: linear-gradient(135deg, #ff7a00, #ff4d4f);
   box-shadow: 0 8px 20px rgba(255,90,60,.35);
 }
-.btn-primary:hover { filter: brightness(1.06); }
+.btn-primary:hover {
+    filter: brightness(1.06);
+}
 .btn-secondary {
   color: white;
   background: #3a3f4a;
 }
-.btn-secondary:hover { filter: brightness(1.06); }
+.btn-secondary:hover {
+    filter: brightness(1.06);
+}
+
+@media (max-width: 560px) {
+    .location-label {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}

@@ -14,16 +14,19 @@
 
     <form id="searchForm" novalidate>
       <div class="grid">
-        <div class="field">
+        <!-- Keyword spans full width -->
+        <div class="field field-full">
           <label for="keyword">Keyword <span class="req">*</span></label>
           <input id="keyword" name="keyword" type="text" required />
         </div>
 
+        <!-- Distance -->
         <div class="field">
-          <label for="distance">Distance(miles)</label>
+          <label for="distance">Distance (miles)</label>
           <input id="distance" name="distance" type="number" placeholder="10" value="10" />
         </div>
 
+        <!-- Category -->
         <div class="field">
           <label for="category">Category <span class="req">*</span></label>
           <select id="category" name="category">
@@ -36,18 +39,20 @@
           </select>
         </div>
 
+        <!-- Location row -->
         <div class="field field-full">
-          <label for="location">Location <span class="req">*</span></label>
+          <div class="location-label">
+            <label for="location">Location <span class="req">*</span></label>
+            <label class="checkbox">
+              <input type="checkbox" id="autoDetect" />
+              <span>Auto-Detect Location</span>
+            </label>
+          </div>
           <input id="location" name="location" type="text" required />
-          <label class="checkbox">
-            <input type="checkbox" id="autoDetect" />
-            <span>Auto-Detect Location</span>
-          </label>
           <div id="autoStatus" class="hint"></div>
         </div>
-      </div>
 
-      <!-- hidden store for detected coordinates -->
+      <!-- hidden coords -->
       <input type="hidden" id="lat" name="lat" />
       <input type="hidden" id="lon" name="lon" />
 
