@@ -12,3 +12,12 @@ clearButton.addEventListener("click", () => {
     form.requestFullscreen();
     console.log("Form cleared");
 });
+
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const keyword = document.getElementById("keyword").value.trim();
+  const distance = document.getElementById("distance").value || "10";
+  const category = document.getElementById("category").value;
+
+  console.log("SEARCH clicked with:", { keyword, distance, category });
+});

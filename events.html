@@ -10,6 +10,18 @@
     <form id="searchForm">
         <label for="keyword">Keyword *</label>
         <input id="keyword" name="keyword" type="text" required />
+        <label for="distance">Distance (miles)</label>
+        <input id="distance" name="distance" type="number" placeholder="10" value="10" />
+
+        <label for="category">Category</label>
+        <select id="category" name="category">
+            <option value="default" selected>Default</option>
+            <option value="music">Music</option>
+            <option value="sports">Sports</option>
+            <option value="arts">Arts & Theatre</option>
+            <option value="film">Film</option>
+            <option value="miscellaneous">Miscellaneous</option>
+        </select>
         <div style="margin-top:12px;">
             <button type="submit">SEARCH</button>
             <button type="button" id="clearButton">CLEAR</button>
