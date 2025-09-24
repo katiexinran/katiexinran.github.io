@@ -3,65 +3,82 @@
 <head>
   <meta charset="UTF-8" />
   <title>Events Search</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="events.css" />
 </head>
 <body>
-  <div class="page-bg"></div>
+  <!-- Background image with fallback gradient; replace bg.jpg if desired -->
+  <div class="page-bg" aria-hidden="true"></div>
 
-  <div class="card">
-    <h1>Events Search</h1>
-    <hr />
+  <main class="container">
+    <section class="card" aria-labelledby="page-title">
+      <h1 id="page-title">Events Search</h1>
+      <hr />
 
-    <form id="searchForm" novalidate>
-      <div class="grid">
-        <!-- Keyword spans full width -->
-        <div class="field field-full">
-          <label for="keyword">Keyword <span class="req">*</span></label>
-          <input id="keyword" name="keyword" type="text" required />
-        </div>
-
-        <!-- Distance -->
-        <div class="field">
-          <label for="distance">Distance (miles)</label>
-          <input id="distance" name="distance" type="number" placeholder="10" value="10" />
-        </div>
-
-        <!-- Category -->
-        <div class="field">
-          <label for="category">Category <span class="req">*</span></label>
-          <select id="category" name="category">
-            <option value="default" selected>Default</option>
-            <option value="music">Music</option>
-            <option value="sports">Sports</option>
-            <option value="arts">Arts & Theatre</option>
-            <option value="film">Film</option>
-            <option value="miscellaneous">Miscellaneous</option>
-          </select>
-        </div>
-
-        <!-- Location row -->
-        <div class="field field-full">
-          <div class="location-label">
-            <label for="location">Location <span class="req">*</span></label>
-            <label class="checkbox">
-              <input type="checkbox" id="autoDetect" />
-              <span>Auto-Detect Location</span>
-            </label>
+      <!-- Search Form -->
+      <form id="searchForm" class="form" novalidate>
+        <div class="grid">
+          <!-- Keyword (required) -->
+          <div class="field field-full">
+            <label for="keyword">Keyword <span class="req">*</span></label>
+            <input id="keyword" name="keyword" type="text" required />
           </div>
-          <input id="location" name="location" type="text" required />
-          <div id="autoStatus" class="hint"></div>
+
+          <!-- Distance -->
+          <div class="field">
+            <label for="distance">Distance (miles)</label>
+            <input id="distance" name="distance" type="number" min="0" step="1" value="10" />
+          </div>
+
+          <!-- Category -->
+          <div class="field">
+            <label for="category">Category</label>
+            <select id="category" name="category">
+              <option value="default" selected>Default</option>
+              <option value="music">Music</option>
+              <option value="sports">Sports</option>
+              <option value="arts">Arts</option>
+              <option value="theatre">Theatre</option>
+              <option value="film">Film</option>
+              <option value="miscellaneous">Miscellaneous</option>
+            </select>
+          </div>
+
+          <!-- Location + Auto-detect (one line) -->
+          <div class="field field-full">
+            <div class="location-label">
+              <label for="location">Location <span class="req" id="loc-asterisk">*</span></label>
+              <label class="checkbox">
+                <input type="checkbox" id="autoDetect" />
+                <span>Auto-detect your location</span>
+              </label>
+            </div>
+
+            <input id="location" name="location" type="text" required />
+            <div id="autoStatus" class="hint" aria-live="polite"></div>
+          </div>
+
+          <!-- Hidden fields to hold resolved coordinates -->
+          <input type="hidden" id="lat" name="lat" />
+          <input type="hidden" id="lon" name="lon" />
         </div>
 
-      <!-- hidden coords -->
-      <input type="hidden" id="lat" name="lat" />
-      <input type="hidden" id="lon" name="lon" />
+        <!-- Actions -->
+        <div class="actions">
+          <button type="submit" class="btn btn-primary" id="searchBtn">SEARCH</button>
+          <button type="button" id="clearButton" class="btn btn-secondary">CLEAR</button>
+        </div>
+      </form>
+    </section>
 
-      <div class="actions">
-        <button type="submit" class="btn btn-primary">SEARCH</button>
-        <button type="button" id="clearButton" class="btn btn-secondary">CLEAR</button>
-      </div>
-    </form>
-  </div>
+    <!-- Results (hidden by default) -->
+    <section id="resultsSection" class="results hidden" aria-live="polite">
+      <div id="loading" class="loading hidden">Searching…</div>
+      <div id="error" class="msg msg-error hidden"></div>
+      <div id="empty" class="msg msg-empty hidden">No results found.</div>
+      <div id="resultsTableWrap" class="table-wrap hidden"></div>
+    </section>
+  </main>
 
   <script src="events.js"></script>
 </body>
