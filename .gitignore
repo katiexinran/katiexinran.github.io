@@ -30,3 +30,48 @@ node_modules/
 
 # VSCode
 .vscode/
+
+# --- OS/Editor ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# --- Python/Flask ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+ENV/
+instance/
+*.sqlite3
+*.db
+.pytest_cache/
+.cache/
+.mypy_cache/
+.pyre/
+.pytype/
+.hypothesis/
+.tox/
+coverage/
+.coverage*
+pip-wheel-metadata/
+pip-selfcheck.json
+
+# --- Logs ---
+logs/
+*.log
+
+# --- Node (if any) ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Credentials (keep secrets out of git) ---
+.env
+*.env
+*service-account*.json
+*credentials*.json
