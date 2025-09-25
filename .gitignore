@@ -75,3 +75,27 @@ yarn-error.log*
 *.env
 *service-account*.json
 *credentials*.json
+cs571hw2/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+
+# OS junk
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+.env
+
+# Virtual envs
+cs571hw2/
+.venv/
+
+# Node (just in case)
+node_modules/

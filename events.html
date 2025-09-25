@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="events.css" />
 </head>
 <body>
-  <!-- Background image with fallback gradient; replace bg.jpg if desired -->
   <div class="page-bg" aria-hidden="true"></div>
 
   <main class="container">
@@ -15,22 +14,18 @@
       <h1 id="page-title">Events Search</h1>
       <hr />
 
-      <!-- Search Form -->
       <form id="searchForm" class="form" novalidate>
         <div class="grid">
-          <!-- Keyword (required) -->
           <div class="field field-full">
             <label for="keyword">Keyword <span class="req">*</span></label>
             <input id="keyword" name="keyword" type="text" required />
           </div>
 
-          <!-- Distance -->
           <div class="field">
             <label for="distance">Distance (miles)</label>
-            <input id="distance" name="distance" type="number" min="0" step="1" value="10" />
+            <input id="distance" name="distance" type="number" min="0" step="1" />
           </div>
 
-          <!-- Category -->
           <div class="field">
             <label for="category">Category</label>
             <select id="category" name="category">
@@ -44,39 +39,38 @@
             </select>
           </div>
 
-          <!-- Location + Auto-detect (one line) -->
           <div class="field field-full">
             <div class="location-label">
-              <label for="location">Location <span class="req" id="loc-asterisk">*</span></label>
+              <label for="location">Location <span class="req">*</span></label>
               <label class="checkbox">
                 <input type="checkbox" id="autoDetect" />
                 <span>Auto-detect your location</span>
               </label>
             </div>
-
             <input id="location" name="location" type="text" required />
             <div id="autoStatus" class="hint" aria-live="polite"></div>
           </div>
 
-          <!-- Hidden fields to hold resolved coordinates -->
           <input type="hidden" id="lat" name="lat" />
           <input type="hidden" id="lon" name="lon" />
         </div>
 
-        <!-- Actions -->
-        <div class="actions">
+        <div class="actions actions-left">
           <button type="submit" class="btn btn-primary" id="searchBtn">SEARCH</button>
           <button type="button" id="clearButton" class="btn btn-secondary">CLEAR</button>
         </div>
       </form>
     </section>
 
-    <!-- Results (hidden by default) -->
     <section id="resultsSection" class="results hidden" aria-live="polite">
       <div id="loading" class="loading hidden">Searching…</div>
       <div id="error" class="msg msg-error hidden"></div>
-      <div id="empty" class="msg msg-empty hidden">No results found.</div>
+      <div id="empty" class="msg msg-empty hidden">No results found</div>
       <div id="resultsTableWrap" class="table-wrap hidden"></div>
+
+      <!-- Event & Venue detail area -->
+      <div id="detailsCard" class="details hidden"></div>
+      <div id="venueCard" class="venue hidden"></div>
     </section>
   </main>
 
