@@ -183,8 +183,13 @@ th:nth-child(4){ white-space:nowrap; }
 }
 .venue-card .name{
   text-align:center;
-  font-size:28px; font-weight:800; letter-spacing:.2px;
-  margin:4px 0 14px;
+  font-size:28px;
+  font-weight:800;
+  display: inline-block;
+  border-bottom: 2px solid #111;
+  padding-bottom: 6px;
+  letter-spacing:.2px;
+  margin: 0 auto 12px;
 }
 
 /* two columns with a center divider, vertically centered, left-aligned text */
@@ -217,6 +222,14 @@ th:nth-child(4){ white-space:nowrap; }
 
 /* right column (link) */
 .venue-links{ text-align:left; line-height:1.5; }
+.venue-logo{
+  display: block;
+  margin: 10px auto 6px;        /* centered */
+  max-width: 220px;
+  max-height: 90px;
+  height: auto;
+  object-fit: contain;
+}
 
 .location-label {
     display:flex;
@@ -250,6 +263,54 @@ th:nth-child(4){ white-space:nowrap; }
 
 .location-label .checkbox input{ margin: 0; }
 .location-label .checkbox span{ white-space: nowrap; }
+
+/* === Venue header: centered title + smaller logo === */
+.venue-card .venue-header{
+  text-align: center;
+  margin-bottom: 4px;
+}
+.venue-card .venue-header .vname{
+  display: inline-block;          /* allows the underline to hug the text */
+  margin: 0 0 4px;
+  padding-bottom: 4px;
+  font-size: 28px;
+  font-weight: 800;
+  border-bottom: 2px solid #111;  /* underline like the video */
+}
+.venue-card .venue-header .venue-logo{
+  display: block;
+  margin: 2px auto 0;
+  max-width: 260px;               /* smaller logo */
+  max-height: 72px;
+  height: auto;
+  object-fit: contain;
+}
+
+/* dark-gray look for prefilled distance value */
+.as-placeholder{
+  color:#8a93a4;              /* darker gray */
+}
+
+/* venue header centered & underlined with tighter spacing */
+.venue-card .name{
+  text-align:center;
+  font-size:32px;
+  font-weight:800;
+  display:inline-block;
+  margin:0 0 8px;             /* reduce bottom gap */
+  padding-bottom:6px;
+  border-bottom:2px solid #222;
+}
+
+/* venue logo smaller + closer to the title */
+.venue-card .vlogo{
+  display:block;
+  margin:6px auto 10px;       /* pulled up under the title */
+  max-width:220px;            /* smaller */
+  max-height:72px;
+  object-fit:contain;
+}
+
 
 /* ============== Responsive ============== */
 @media (max-width: 780px){

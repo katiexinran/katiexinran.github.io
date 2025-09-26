@@ -313,61 +313,48 @@ function renderVenueCard(v, fallbackName){
     return;
   }
 
-  const fullName  = v.name || fallbackName || "N/A";
-  const line1     = v.address || "N/A";
-  const cityState = [v.city || "N/A", v.state || "N/A"].join(", ");
-  const postal    = v.postalCode || "N/A";
-  const fullAddrQ = `${fullName}, ${line1}, ${cityState}, ${postal}`.replace(/\s+,/g, ",").trim();
-  const gmapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddrQ)}`;
-  const moreHref  = v.url || "";
+  const fullName   = v.name || fallbackName || "N/A";
+  const line1      = v.address || "N/A";
+  const cityState  = [v.city || "N/A", v.state || "N/A"].join(", ");
+  const postal     = v.postalCode || "N/A";
+  const fullAddrQ  = `${fullName}, ${line1}, ${cityState}, ${postal}`.replace(/\s+,/g, ",").trim();
+  const gmapsHref  = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddrQ)}`;
+  const moreHref   = v.url || "";
+  const logoUrl    = v.image || ""; // <- Ticketmaster venue image (logo if available)
 
   venueCard.innerHTML = `
-    <div class="venue-shell">
-      <div class="venue-card">
-        <div class="name">${escapeHtml(fullName)}</div>
-        <div class="venue-body">
-          <div class="venue-info">
-            <div class="address-row">
-              <div class="label">Address:</div>
-              <div class="addr-lines">
-                ${escapeHtml(line1)}<br>
-                ${escapeHtml(cityState)}<br>
-                ${escapeHtml(postal)}
-              </div>
+  <div class="venue-shell">
+    <div class="venue-card">
+      <div class="venue-header">
+        <div class="vname">${escapeHtml(fullName)}</div>
+        ${v.image ? `<img class="venue-logo" src="${escapeHtml(v.image)}" alt="${escapeHtml(fullName)} logo">` : ""}
+      </div>
+
+      <div class="venue-body">
+        <!-- Left column -->
+        <div class="venue-info">
+          <div class="address-row">
+            <div class="label">Address:</div>
+            <div class="addr-lines">
+              ${escapeHtml(line1)}<br>
+              ${escapeHtml(cityState)}<br>
+              ${escapeHtml(postal)}
             </div>
-            <a class="gmaps" href="${gmapsHref}" target="_blank" rel="noopener">Open in Google Maps</a>
           </div>
-          <div class="venue-links">
-            ${moreHref ? `<a href="${escapeHtml(moreHref)}" target="_blank" rel="noopener">More events at this venue</a>` : ""}
-          </div>
+          <a class="gmaps" href="${gmapsHref}" target="_blank" rel="noopener">Open in Google Maps</a>
+        </div>
+
+        <!-- Right column -->
+        <div class="venue-links">
+          ${moreHref ? `<a href="${escapeHtml(moreHref)}" target="_blank" rel="noopener">More events at this venue</a>` : ""}
         </div>
       </div>
     </div>
-  `;
+  </div>
+`;
+
   venueCard.classList.remove("hidden");
 }
-
-// ======= Form wiring =======
-distanceInput.value = "10";
-distanceInput.classList.add("as-placeholder");
-distanceInput.addEventListener("input", ()=>distanceInput.classList.remove("as-placeholder"));
-
-autoDetect.addEventListener("change", async ()=>{
-  if(autoDetect.checked){
-    setAutoDetectMode();
-    autoStatus.textContent = "Detecting location…";
-    try{
-      const info = await getIpLocation();
-      latHidden.value = String(info.lat); lonHidden.value = String(info.lon);
-      autoStatus.textContent = `Detected: ${info.city ?? ""} ${info.region ?? ""}`.trim();
-    }catch{
-      autoStatus.textContent = "Could not detect location. Please enter it manually.";
-      autoDetect.checked = false; setManualLocationMode();
-    }
-  }else{
-    setManualLocationMode();
-  }
-});
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -432,4 +419,46 @@ clearButton.addEventListener("click", () => {
   distanceInput.value = "10";
   distanceInput.classList.add("as-placeholder");
   currentItems = []; sortState = { key: null, dir: "asc" };
+});
+
+// --- Make the default "10" appear dark gray until edited ---
+document.addEventListener("DOMContentLoaded", () => {
+  // Gray on first paint if it's still the default "10"
+  if (distanceInput.value === "" || distanceInput.value === "10") {
+    distanceInput.classList.add("as-placeholder");
+  }
+
+  let hasEditedDistance = false;
+
+  const reflectPlaceholder = () => {
+    // Once the user edits, keep it white regardless of the number
+    if (hasEditedDistance) {
+      distanceInput.classList.remove("as-placeholder");
+      return;
+    }
+    // Before the first edit, keep gray only for the default
+    if (distanceInput.value === "" || distanceInput.value === "10") {
+      distanceInput.classList.add("as-placeholder");
+    } else {
+      distanceInput.classList.remove("as-placeholder");
+    }
+  };
+
+  distanceInput.addEventListener("input", () => {
+    hasEditedDistance = true;
+    reflectPlaceholder();
+  });
+
+  distanceInput.addEventListener("change", reflectPlaceholder);
+  distanceInput.addEventListener("blur", () => {
+    if (distanceInput.value === "") distanceInput.value = "10";
+    reflectPlaceholder();
+  });
+
+  // When the user hits CLEAR, restore the gray default
+  clearButton.addEventListener("click", () => {
+    hasEditedDistance = false;
+    distanceInput.value = "10";
+    distanceInput.classList.add("as-placeholder");
+  });
 });
