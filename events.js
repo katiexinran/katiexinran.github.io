@@ -1,5 +1,7 @@
 // Search + results + event/venue details with color-coded ticket status.
 
+const API_BASE = "https://cs571hw2-katie.wl.r.appspot.com";
+
 // ======= CONFIG =======
 const IPINFO_TOKEN = "3d5aa08629e9e7";
 
@@ -28,7 +30,7 @@ const emptyEl = document.getElementById("empty");
 const resultsTableWrap = document.getElementById("resultsTableWrap");
 const detailsCard = document.getElementById("detailsCard");
 const venueCard = document.getElementById("venueCard");
-const venueToggleBar = document.getElementById("venueToggleBar"); // <— missing before
+const venueToggleBar = document.getElementById("venueToggleBar");
 
 // ======= STATE =======
 let currentItems = [];
@@ -208,7 +210,7 @@ function sortCurrent() {
 // ======= DETAILS (EVENT + VENUE) =======
 async function fetchAndShowDetails(eventId, venueNameFromRow) {
   try {
-    const resp = await fetch(`/event?id=${encodeURIComponent(eventId)}`);
+    const resp = await fetch(`${API_BASE}/event?id=${encodeURIComponent(eventId)}`);
     const data = await resp.json();
     if (!resp.ok) { showError(data.error || `HTTP ${resp.status}`); return; }
     renderEventDetails(data.event, venueNameFromRow || data.event.venueName);
@@ -295,7 +297,7 @@ function renderEventDetails(ev, venueNameForToggle){
 
 async function fetchAndShowVenue(name) {
   try {
-    const resp = await fetch(`/venue?keyword=${encodeURIComponent(name)}`);
+    const resp = await fetch(`${API_BASE}/venue?keyword=${encodeURIComponent(name)}`);
     const data = await resp.json();
     if (!resp.ok) { showError(data.error || `HTTP ${resp.status}`); return; }
     renderVenueCard(data.venue, name);
@@ -320,7 +322,7 @@ function renderVenueCard(v, fallbackName){
   const fullAddrQ  = `${fullName}, ${line1}, ${cityState}, ${postal}`.replace(/\s+,/g, ",").trim();
   const gmapsHref  = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddrQ)}`;
   const moreHref   = v.url || "";
-  const logoUrl    = v.image || ""; // <- Ticketmaster venue image (logo if available)
+  const logoUrl    = v.image || "";
 
   venueCard.innerHTML = `
   <div class="venue-shell">
@@ -390,7 +392,7 @@ form.addEventListener("submit", async (e) => {
 
   showLoading();
   try {
-    const resp = await fetch(`/search?${params.toString()}`, { method: "GET" });
+    const resp = await fetch(`${API_BASE}/search?${params.toString()}`, { method: "GET" });
     let payload = {}; try { payload = await resp.json(); } catch {}
     if (!resp.ok) { showError(payload.error || payload.details || `HTTP ${resp.status}`); return; }
 
