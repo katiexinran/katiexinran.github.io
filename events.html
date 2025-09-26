@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <title>Events Search</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Google Geocoding key read by JS -->
+  <meta name="google-maps-key" content="AIzaSyAlIwx5AicjUiJge-ati0zNs8mfYq2BY2w">
   <link rel="stylesheet" href="events.css" />
 </head>
 <body>
@@ -68,9 +70,14 @@
       <div id="empty" class="msg msg-empty hidden">No results found</div>
       <div id="resultsTableWrap" class="table-wrap hidden"></div>
 
-      <!-- Event & Venue detail area -->
+      <!-- Event detail card -->
       <div id="detailsCard" class="details hidden"></div>
-      <div id="venueCard" class="venue hidden"></div>
+
+      <!-- Centered toggle lives OUTSIDE the details card -->
+      <div id="venueToggleBar" class="venue-toggle hidden"></div>
+
+      <!-- Venue detail container (JS injects the white card) -->
+      <div id="venueCard" class="hidden"></div>
     </section>
   </main>
 
