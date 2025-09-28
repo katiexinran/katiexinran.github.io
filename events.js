@@ -47,22 +47,18 @@ function escapeHtml(s = "") {
   })[c]);
 }
 
-function formatDate(dstr = "") {
-  if (!dstr) return "-";
-  const [d, t] = dstr.split(" ");
-  return t ? `${d}<br>${t}` : d;
-}
-
 function setManualLocationMode() {
   locationInput.style.display = "block";
   locationInput.required = true;
-  autoStatus.textContent = "";
+  autoStatus.textContent = "";       // clear any auto-detect hint
   latHidden.value = "";
   lonHidden.value = "";
 }
+
 function setAutoDetectMode() {
   locationInput.style.display = "none";
   locationInput.required = false;
+  autoStatus.textContent = "Using your current location.";
 }
 
 // ---- IP-based location ----
@@ -464,3 +460,17 @@ document.addEventListener("DOMContentLoaded", () => {
     distanceInput.classList.add("as-placeholder");
   });
 });
+
+// --- Show/hide the "Location" input when Auto-detect is toggled ---
+const syncLocationField = () => {
+  if (autoDetect.checked) {
+    setAutoDetectMode();
+  } else {
+    setManualLocationMode();
+  }
+};
+
+autoDetect.addEventListener("change", syncLocationField);
+
+// Run once on load so the UI matches the checkbox state immediately
+document.addEventListener("DOMContentLoaded", syncLocationField);

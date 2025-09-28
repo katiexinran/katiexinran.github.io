@@ -40,7 +40,7 @@ body{
 .card{
   max-width:720px; margin:48px auto 28px;
   padding:24px 22px 26px;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(10px) saturate(120%);
   border:0 !important;
   background: rgba(16,18,24,0.68) !important;
   border-radius:var(--radius);
@@ -322,4 +322,8 @@ th:nth-child(4){ white-space:nowrap; }
   .table-wrap{ border-radius:10px; }
   .venue-body{ grid-template-columns:1fr; row-gap:20px; }
   .venue-body::after{ display:none; }
+}
+
+@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
+  .card { background: rgba(16,18,24,0.85); }
 }
