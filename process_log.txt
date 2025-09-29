@@ -1,0 +1,78 @@
+Process Log - CS571 HW2 (Events Search)
+
+1. Prompt:
+why when i select "auto-detect your location" the textbox for location is still there? 
+the text box should disappear when autodetect is selected and reappear when it's deselected
+
+2. Issues (Specificity):
+You’re not toggling the Location input when the checkbox changes. Add a small sync function, hook it to the checkbox’s change event, and call it once on load (and after Clear).
+    1. Add this right after your element lookups
+    / Keep the Location field in sync with the checkbox
+    function syncLocationField() {
+      if (autoDetect.checked) {
+        setAutoDetectMode();   // hide box, make not required
+      } else {
+        setManualLocationMode(); // show box, make required
+      }
+    }
+
+    autoDetect.addEventListener("change", syncLocationField);
+
+    2. Call it once on page load
+    Inside your existing DOMContentLoaded handler, add:
+    syncLocationField();
+
+    3. Update the CLEAR button handler
+    Replace the line setManualLocationMode(); with:
+    // After reset, reflect the (reset) checkbox state
+    syncLocationField();
+
+That’s it. Now the Location textbox disappears when “Auto-detect your location” is checked and reappears when unchecked. If it still looks unchanged, do a hard refresh to bust cached JS (Cmd+Shift+R).
+
+3. Fix (Correctness):
+I implemented explicit show/hide and validation toggling, centralized in a single sync function, and wired it to load/change/clear.
+
+/* Show the Location textbox + require it */
+function setManualLocationMode() {
+  locationInput.style.display = "block";
+  locationInput.required = true;
+  autoStatus.textContent = "";
+  latHidden.value = "";
+  lonHidden.value = "";
+}
+
+/* Hide the Location textbox + not required */
+function setAutoDetectMode() {
+  locationInput.style.display = "none";
+  locationInput.required = false;
+  autoStatus.textContent = "Using your current location.";
+}
+
+/* Keep the Location textbox in sync with the checkbox */
+function syncLocationField() {
+  if (autoDetect.checked) setAutoDetectMode();
+  else setManualLocationMode();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  // ...
+  syncLocationField();
+});
+
+// Keep it in sync when the checkbox changes
+autoDetect.addEventListener("change", syncLocationField);
+
+// On CLEAR, reflect the (reset) checkbox state instead of forcing manual mode
+clearButton.addEventListener("click", () => {
+  // form.reset() already runs in your handler; then:
+  syncLocationField();
+});
+
+
+This uses display: none so the field actually disappears (no whitespace), flips required to avoid hidden-field validation errors, updates the user hint, and clears stale coordinates when returning to manual mode.
+
+4. Explanation (Depth):
+Using display: none removes the field from layout, satisfying the “disappear” requirement, 
+while flipping required prevents HTML5 validation from blocking submits on hidden inputs. 
+Centralizing logic in syncLocationField() keeps state consistent on load, toggle, and clear, 
+avoids stale coordinates, reduces user confusion, and improves overall robustness and maintainability.
