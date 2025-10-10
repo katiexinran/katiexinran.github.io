@@ -29,7 +29,6 @@ body{
 .page-bg{
   position:fixed; inset:0;
   background:
-    linear-gradient(rgba(0,0,0,.62), rgba(0,0,0,.62)),
     url('background.jpg') center/cover fixed no-repeat;
   z-index:-1;
   filter:saturate(.95) brightness(.9);
