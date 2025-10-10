@@ -140,10 +140,21 @@ th:nth-child(4){ white-space:nowrap; }
 .pill.orange{ background:#b66803; color:#fff3e0; }
 .pill.black{ background:#2a2a2a; color:#f1f1f1; }
 
-/* Links (readable) */
-.details a, .venue-card a{ color:#1a73e8; text-decoration:none; }
-.details a:hover, .venue-card a:hover{ text-decoration:underline; }
-.details .artists a{ color:#8fd3ff; }
+/* Links (consistent blue tone for all) */
+.details a, 
+.venue-card a, 
+.details .artists a {
+  color: #1a73e8;           /* unified Ticketmaster blue */
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.details a:hover, 
+.venue-card a:hover, 
+.details .artists a:hover {
+  text-decoration: underline;
+  color: #1a73e8;           /* keep same color on hover */
+}
 
 /* ============== Outside toggle (centered) ============== */
 #venueToggleBar{
