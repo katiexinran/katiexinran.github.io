@@ -311,6 +311,22 @@ th:nth-child(4){ white-space:nowrap; }
   object-fit:contain;
 }
 
+/* ============== Event links in search table ============== */
+
+/* Make event names appear as plain black text (no underline) */
+table a.event-link {
+  color: #202733;           /* same as table text color */
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+/* On hover, change color to match interactive feedback */
+table a.event-link:hover {
+  color: #3367d6;           /* subtle blue hover like the reference video */
+}
+
+
 
 /* ============== Responsive ============== */
 @media (max-width: 780px){
