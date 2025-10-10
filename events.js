@@ -1,6 +1,22 @@
 // Search + results + event/venue details with color-coded ticket status.
 
-const API_BASE = "https://cs571hw2-katie.wl.r.appspot.com";
+// Prefer a global override (set in HTML), otherwise use same-origin when hosted
+// together with the backend (e.g., on App Engine), and finally fall back to
+// the deployed backend URL for GitHub Pages.
+const API_BASE = (() => {
+  // 1) explicit override wins
+  if (typeof window !== "undefined" && window.API_BASE && window.API_BASE.trim()) {
+    return window.API_BASE.trim();
+  }
+  // 2) if running from GitHub Pages OR from file://, use the deployed backend
+  const fromGithubPages = typeof location !== "undefined" && location.hostname.endsWith("github.io");
+  const fromFileScheme  = typeof location !== "undefined" && location.protocol === "file:";
+  if (fromGithubPages || fromFileScheme) {
+    return "https://cs571hw2-katie.wl.r.appspot.com";
+  }
+  // 3) otherwise default to same-origin (works when served by Flask/App Engine)
+  return typeof location !== "undefined" ? location.origin : "https://cs571hw2-katie.wl.r.appspot.com";
+})();
 
 // ======= CONFIG =======
 const IPINFO_TOKEN = "3d5aa08629e9e7";
@@ -47,32 +63,25 @@ function escapeHtml(s = "") {
   })[c]);
 }
 
+// Format "YYYY-MM-DD HH:MM:SS" to split date/time on two lines in the table
 function formatDate(dstr = "") {
   if (!dstr) return "-";
-  const [d, t] = dstr.split(" ");
+  const [d, t] = String(dstr).split(" ");
   return t ? `${d}<br>${t}` : d;
 }
 
-/* Show the Location textbox + require it */
 function setManualLocationMode() {
   locationInput.style.display = "block";
   locationInput.required = true;
-  autoStatus.textContent = "";
+  autoStatus.textContent = "";       // clear any auto-detect hint
   latHidden.value = "";
   lonHidden.value = "";
 }
 
-/* Hide the Location textbox + not required */
 function setAutoDetectMode() {
   locationInput.style.display = "none";
   locationInput.required = false;
   autoStatus.textContent = "Using your current location.";
-}
-
-/* Keep the Location textbox in sync with the checkbox */
-function syncLocationField() {
-  if (autoDetect.checked) setAutoDetectMode();
-  else setManualLocationMode();
 }
 
 // ---- IP-based location ----
@@ -152,33 +161,23 @@ function renderTable() {
 
 // ======= TABLE RENDER + SORTING =======
 function buildResultsTable(items, sort) {
-  const rows = items
-    .map(
-      (it) => `
+  const rows = items.map((it) => `
     <tr>
       <td class="date-cell">${formatDate(it.date)}</td>
       <td class="img-cell">${
-        it.icon
-          ? `<img src="${escapeHtml(it.icon)}" alt="${escapeHtml(
-              it.event
-            )} icon">`
-          : "-"
+        it.icon ? `<img src="${escapeHtml(it.icon)}" alt="${escapeHtml(it.event)} icon">` : "-"
       }</td>
       <td>${
         it.id
-          ? `<a href="#" class="event-link" data-eid="${it.id}" data-vname="${escapeHtml(
-              it.venue
-            )}">${escapeHtml(it.event)}</a>`
+          ? `<a href="#" class="event-link" data-eid="${it.id}" data-vname="${escapeHtml(it.venue)}">${escapeHtml(it.event)}</a>`
           : escapeHtml(it.event)
       }</td>
       <td>${escapeHtml(it.genre || "-")}</td>
       <td>${escapeHtml(it.venue || "-")}</td>
     </tr>
-  `
-    )
-    .join("");
+  `).join("");
 
-  const evClass = sort.key === "event" ? `sorted-${sort.dir}` : "";
+  const evClass  = sort.key === "event" ? `sorted-${sort.dir}` : "";
   const genClass = sort.key === "genre" ? `sorted-${sort.dir}` : "";
   const venClass = sort.key === "venue" ? `sorted-${sort.dir}` : "";
 
@@ -202,14 +201,9 @@ function attachResultHandlers() {
   resultsTableWrap.querySelectorAll("th.sortable").forEach((th) => {
     th.addEventListener("click", () => {
       const key = th.dataset.key;
-      if (sortState.key === key)
-        sortState.dir = sortState.dir === "asc" ? "desc" : "asc";
-      else {
-        sortState.key = key;
-        sortState.dir = "asc";
-      }
-      sortCurrent();
-      renderTable();
+      if (sortState.key === key) sortState.dir = sortState.dir === "asc" ? "desc" : "asc";
+      else { sortState.key = key; sortState.dir = "asc"; }
+      sortCurrent(); renderTable();
     });
   });
 
@@ -222,8 +216,7 @@ function attachResultHandlers() {
 }
 
 function sortCurrent() {
-  const k = sortState.key;
-  if (!k) return;
+  const k = sortState.key; if (!k) return;
   currentItems.sort((a, b) => {
     const av = String(a[k] ?? "").toLowerCase();
     const bv = String(b[k] ?? "").toLowerCase();
@@ -236,14 +229,9 @@ function sortCurrent() {
 // ======= DETAILS (EVENT + VENUE) =======
 async function fetchAndShowDetails(eventId, venueNameFromRow) {
   try {
-    const resp = await fetch(
-      `${API_BASE}/event?id=${encodeURIComponent(eventId)}`
-    );
+    const resp = await fetch(`${API_BASE}/event?id=${encodeURIComponent(eventId)}`);
     const data = await resp.json();
-    if (!resp.ok) {
-      showError(data.error || `HTTP ${resp.status}`);
-      return;
-    }
+    if (!resp.ok) { showError(data.error || `HTTP ${resp.status}`); return; }
     renderEventDetails(data.event, venueNameFromRow || data.event.venueName);
     detailsCard.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (err) {
@@ -278,46 +266,25 @@ function row(label, val, cls = "") {
   `;
 }
 
-function renderEventDetails(ev, venueNameForToggle) {
+function renderEventDetails(ev, venueNameForToggle){
   const dateStr = [ev.date, ev.time].filter(Boolean).join(" ");
-  const artists = (ev.artists || [])
-    .map((a) =>
-      a.url
-        ? `<a href="${escapeHtml(a.url)}" target="_blank" rel="noopener">${escapeHtml(
-            a.name
-          )}</a>`
-        : escapeHtml(a.name)
-    )
-    .join(" | ");
-  const genres = (ev.genres || []).join(" | ");
+  const artists = (ev.artists||[]).map(a =>
+    a.url ? `<a href="${escapeHtml(a.url)}" target="_blank" rel="noopener">${escapeHtml(a.name)}</a>` : escapeHtml(a.name)
+  ).join(" | ");
+  const genres   = (ev.genres||[]).join(" | ");
   const pillClass = statusToClass(ev.status);
-  const pillHtml = ev.status
-    ? `<span class="pill ${pillClass}">${escapeHtml(niceStatus(ev.status))}</span>`
-    : "";
+  const pillHtml  = ev.status ? `<span class="pill ${pillClass}">${escapeHtml(niceStatus(ev.status))}</span>` : "";
 
   const rows = [];
   if (dateStr) rows.push(row("Date", dateStr));
   if (artists) rows.push(row("Artist/Team", artists, "artists"));
-  if (ev.venueName || venueNameForToggle)
-    rows.push(
-      row("Venue", escapeHtml(ev.venueName || venueNameForToggle))
-    );
+  if (ev.venueName || venueNameForToggle) rows.push(row("Venue", escapeHtml(ev.venueName || venueNameForToggle)));
   if (genres) rows.push(row("Genres", escapeHtml(genres)));
   if (ev.priceRange) rows.push(row("Price Ranges", escapeHtml(ev.priceRange)));
   if (pillHtml) rows.push(row("Ticket Status", pillHtml));
-  if (ev.buyUrl)
-    rows.push(
-      row(
-        "Buy Ticket At",
-        `<a href="${escapeHtml(ev.buyUrl)}" target="_blank" rel="noopener">Ticketmaster</a>`
-      )
-    );
+  if (ev.buyUrl) rows.push(row("Buy Ticket At", `<a href="${escapeHtml(ev.buyUrl)}" target="_blank" rel="noopener">Ticketmaster</a>`));
 
-  const right = ev.seatmap
-    ? `<div class="seatmap"><img src="${escapeHtml(
-        ev.seatmap
-      )}" alt="Seat map"></div>`
-    : "";
+  const right = ev.seatmap ? `<div class="seatmap"><img src="${escapeHtml(ev.seatmap)}" alt="Seat map"></div>` : "";
 
   detailsCard.innerHTML = `
     <div class="title">${escapeHtml(ev.name || "-")}</div>
@@ -349,14 +316,9 @@ function renderEventDetails(ev, venueNameForToggle) {
 
 async function fetchAndShowVenue(name) {
   try {
-    const resp = await fetch(
-      `${API_BASE}/venue?keyword=${encodeURIComponent(name)}`
-    );
+    const resp = await fetch(`${API_BASE}/venue?keyword=${encodeURIComponent(name)}`);
     const data = await resp.json();
-    if (!resp.ok) {
-      showError(data.error || `HTTP ${resp.status}`);
-      return;
-    }
+    if (!resp.ok) { showError(data.error || `HTTP ${resp.status}`); return; }
     renderVenueCard(data.venue, name);
     venueCard.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (err) {
@@ -365,24 +327,21 @@ async function fetchAndShowVenue(name) {
   }
 }
 
-function renderVenueCard(v, fallbackName) {
-  if (!v) {
+function renderVenueCard(v, fallbackName){
+  if(!v){
     venueCard.innerHTML = "";
     venueCard.classList.add("hidden");
     return;
   }
 
-  const fullName = v.name || fallbackName || "N/A";
-  const line1 = v.address || "N/A";
-  const cityState = [v.city || "N/A", v.state || "N/A"].join(", ");
-  const postal = v.postalCode || "N/A";
-  const fullAddrQ = `${fullName}, ${line1}, ${cityState}, ${postal}`
-    .replace(/\s+,/g, ",")
-    .trim();
-  const gmapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    fullAddrQ
-  )}`;
-  const moreHref = v.url || "";
+  const fullName   = v.name || fallbackName || "N/A";
+  const line1      = v.address || "N/A";
+  const cityState  = [v.city || "N/A", v.state || "N/A"].join(", ");
+  const postal     = v.postalCode || "N/A";
+  const fullAddrQ  = `${fullName}, ${line1}, ${cityState}, ${postal}`.replace(/\s+,/g, ",").trim();
+  const gmapsHref  = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddrQ)}`;
+  const moreHref   = v.url || "";
+  const logoUrl    = v.image || "";
 
   venueCard.innerHTML = `
   <div class="venue-shell">
@@ -414,37 +373,28 @@ function renderVenueCard(v, fallbackName) {
     </div>
   </div>
 `;
+
   venueCard.classList.remove("hidden");
 }
 
-// ======= FORM SUBMIT =======
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  // ensure UI/state matches checkbox right before using it
-  syncLocationField();
-  if (!form.checkValidity()) {
-    form.reportValidity();
-    return;
-  }
+  autoDetect.checked ? setAutoDetectMode() : setManualLocationMode();
+  if (!form.checkValidity()) { form.reportValidity(); return; }
 
   let lat, lon;
   try {
     if (autoDetect.checked) {
       if (!latHidden.value || !lonHidden.value) {
-        const info = await getIpLocation();
-        lat = info.lat;
-        lon = info.lon;
+        const info = await getIpLocation(); lat = info.lat; lon = info.lon;
       } else {
-        lat = Number(latHidden.value);
-        lon = Number(lonHidden.value);
+        lat = Number(latHidden.value); lon = Number(lonHidden.value);
       }
     } else {
       const addr = locationInput.value.trim();
       const coords = await geocodeAddress(addr);
-      lat = coords.lat;
-      lon = coords.lon;
-      latHidden.value = String(lat);
-      lonHidden.value = String(lon);
+      lat = coords.lat; lon = coords.lon;
+      latHidden.value = String(lat); lonHidden.value = String(lon);
     }
   } catch {
     showError("Unable to resolve your location. Please try again.");
@@ -452,7 +402,7 @@ form.addEventListener("submit", async (e) => {
   }
 
   const params = new URLSearchParams({
-    keyword: keywordInput.value.trim(),
+    keyword:  keywordInput.value.trim(),
     distance: (distanceInput.value || "10").trim(),
     category: (categorySel.value || "default").trim(),
     lat: String(lat),
@@ -461,41 +411,26 @@ form.addEventListener("submit", async (e) => {
 
   showLoading();
   try {
-    const resp = await fetch(`${API_BASE}/search?${params.toString()}`, {
-      method: "GET",
-    });
-    let payload = {};
-    try {
-      payload = await resp.json();
-    } catch {}
-    if (!resp.ok) {
-      showError(payload.error || payload.details || `HTTP ${resp.status}`);
-      return;
-    }
+    const resp = await fetch(`${API_BASE}/search?${params.toString()}`, { method: "GET" });
+    let payload = {}; try { payload = await resp.json(); } catch {}
+    if (!resp.ok) { showError(payload.error || payload.details || `HTTP ${resp.status}`); return; }
 
-    currentItems = Array.isArray(payload.events)
-      ? payload.events.slice(0, 20)
-      : [];
-    if (currentItems.length === 0) {
-      showEmpty();
-      return;
-    }
+    currentItems = Array.isArray(payload.events) ? payload.events.slice(0, 20) : [];
+    if (currentItems.length === 0) { showEmpty(); return; }
 
     sortState = { key: null, dir: "asc" };
     renderTable();
   } catch (err) {
     console.error(err);
-    showError("Network error. Please try again.");
+    const msg = (err && err.message) ? `Network error: ${err.message}` : "Network error. Please try again.";
+    showError(msg);
   }
 });
 
-// ======= CLEAR =======
 clearButton.addEventListener("click", () => {
   form.reset();
-  // reflect the checkbox's (reset) state
-  syncLocationField();
-  latHidden.value = "";
-  lonHidden.value = "";
+  setManualLocationMode();
+  latHidden.value = ""; lonHidden.value = "";
   resultsSection.classList.add("hidden");
   errorEl.classList.add("hidden");
   emptyEl.classList.add("hidden");
@@ -505,13 +440,12 @@ clearButton.addEventListener("click", () => {
   venueCard.classList.add("hidden");
   distanceInput.value = "10";
   distanceInput.classList.add("as-placeholder");
-  currentItems = [];
-  sortState = { key: null, dir: "asc" };
+  currentItems = []; sortState = { key: null, dir: "asc" };
 });
 
-// --- Initial setup on first paint ---
+// --- Make the default "10" appear dark gray until edited ---
 document.addEventListener("DOMContentLoaded", () => {
-  // Distance "10" appears gray until edited
+  // Gray on first paint if it's still the default "10"
   if (distanceInput.value === "" || distanceInput.value === "10") {
     distanceInput.classList.add("as-placeholder");
   }
@@ -519,10 +453,12 @@ document.addEventListener("DOMContentLoaded", () => {
   let hasEditedDistance = false;
 
   const reflectPlaceholder = () => {
+    // Once the user edits, keep it white regardless of the number
     if (hasEditedDistance) {
       distanceInput.classList.remove("as-placeholder");
       return;
     }
+    // Before the first edit, keep gray only for the default
     if (distanceInput.value === "" || distanceInput.value === "10") {
       distanceInput.classList.add("as-placeholder");
     } else {
@@ -541,15 +477,24 @@ document.addEventListener("DOMContentLoaded", () => {
     reflectPlaceholder();
   });
 
+  // When the user hits CLEAR, restore the gray default
   clearButton.addEventListener("click", () => {
     hasEditedDistance = false;
     distanceInput.value = "10";
     distanceInput.classList.add("as-placeholder");
   });
-
-  // set the initial visibility of the Location textbox based on the checkbox
-  syncLocationField();
 });
 
-// also keep the Location textbox synced whenever the checkbox changes
+// --- Show/hide the "Location" input when Auto-detect is toggled ---
+const syncLocationField = () => {
+  if (autoDetect.checked) {
+    setAutoDetectMode();
+  } else {
+    setManualLocationMode();
+  }
+};
+
 autoDetect.addEventListener("change", syncLocationField);
+
+// Run once on load so the UI matches the checkbox state immediately
+document.addEventListener("DOMContentLoaded", syncLocationField);

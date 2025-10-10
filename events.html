@@ -81,6 +81,8 @@
     </section>
   </main>
 
+  <!-- Force the frontend to call the deployed backend to avoid 404s when this page is loaded from a different origin (e.g., GitHub Pages or file://). Change this to your local URL when testing locally. -->
+  <script>window.API_BASE = 'https://cs571hw2-katie.wl.r.appspot.com';</script>
   <script src="events.js"></script>
 </body>
 </html>

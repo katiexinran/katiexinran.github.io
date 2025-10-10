@@ -1,78 +1,179 @@
-Process Log - CS571 HW2 (Events Search)
+Prompt:
+Create a complete HTML page with separated CSS, and JavaScript that implements a webpage for searching for events through Ticketmaster API. The page should have elements including:
 
-1. Prompt:
-why when i select "auto-detect your location" the textbox for location is still there? 
-the text box should disappear when autodetect is selected and reappear when it's deselected
+- Keyword: ability to search for keywords of events (e.g. "Concert"). Required field, so include a *. Text should be teal colored with a red *.
+- Distance (miles): Not required field. Make it have a default value of 10 which is a more muted gray color and you can press an "up" or "down" arrow to increase or decrease the value, respectively. When you increase or decrease the value, it should start from 10 and go up to 11 or down to 9, and become solid white. This field determines the radius of the area you want to search for events in. Text should be teal colored.
+- Category: To decide what category of event to search for. Should be a dropdown menu with the following options: Default, Music, Sports, Arts, Theatre, Film, Miscellaneous. Required field. Text should be teal colored with a red *.
+- Location: Search for the location of the event. The distance field will filter events based on how far away they are from the location plugged in. Also add a check boxed option to Auto-Detect the user's current location. If the checkbox is checked, the textbook should disappear, and if the checkbox is unchecked, the textbox should reappear. Required field, so include an *. Text should be teal colored with a red *.
+- Search button: Once the user fills in all the fields and clicks the "Search" button, the webpage should display all the event details below in tabular format. The "Search" button should be orange with white text.
+- Clear: If the user clicks the "Clear" button, it should reset all the fields to their default value (or blank if there is no default value), and if results were displayed below these should be cleared as well. The "Clear" button should be a bluish purple color with white text.
 
-2. Issues (Specificity):
-You’re not toggling the Location input when the checkbox changes. Add a small sync function, hook it to the checkbox’s change event, and call it once on load (and after Clear).
-    1. Add this right after your element lookups
-    / Keep the Location field in sync with the checkbox
-    function syncLocationField() {
-      if (autoDetect.checked) {
-        setAutoDetectMode();   // hide box, make not required
-      } else {
-        setManualLocationMode(); // show box, make required
-      }
-    }
+Additional requirements:
+- The top should say "Events Search" and the text should be center aligned and white, with a white line below it.
+- The entire "Events Search" area with all of the fields and buttons described should be enclosed in a box with a frosted background and rounded corners.
+- If the user does not fill out the required fields before pressing the "Search" button, the form should display an error saying "Please fill out this field." near the required field that was left blank. Precedence if multiple are left blank is from top to bottom (Keyword, then Category, then Location).
+- The "Search" and "Clear" button should both include hover effects.
+- Do not call the Ticketmaster API through the JavaScript, this will be handled with Python instead.
+- Make sure the entire webpage is responsive to different screen sizes.
 
-    autoDetect.addEventListener("change", syncLocationField);
 
-    2. Call it once on page load
-    Inside your existing DOMContentLoaded handler, add:
-    syncLocationField();
 
-    3. Update the CLEAR button handler
-    Replace the line setManualLocationMode(); with:
-    // After reset, reflect the (reset) checkbox state
-    syncLocationField();
 
-That’s it. Now the Location textbox disappears when “Auto-detect your location” is checked and reappears when unchecked. If it still looks unchanged, do a hard refresh to bust cached JS (Cmd+Shift+R).
+Issues (Specificity):
+There were no major bugs or issues in the AI generated code. However, it was missing the Google Maps API key which I manually added afterwards, so the results were not rendering below until I did that. Additionally, there were many visual issues (though this may have been an issue with the specificity of my prompt, rather than the AI causing bugs). Some visual issues included:
 
-3. Fix (Correctness):
-I implemented explicit show/hide and validation toggling, centralized in a single sync function, and wired it to load/change/clear.
+Main Page:
+- The names of the categories ("Keyword", "Distance (miles), "Category", "Location") were left aligned, with the corresponding textboxes right aligned next to them, when the category names should be directly above each corresponding textbox.
+- The "Distance (miles)" and "Category" categories should be side by side, with each textbox having a smaller width to fit accordingly.
+- The "Auto-detect your location" box should be above the text box for that one, next to the "Location *" text.
+- The "SEARCH" and "CLEAR" buttons should be uppercase. The AI also added an additional hover feature where the button slightly moves positions when hovered over, which I did not ask for.
 
-/* Show the Location textbox + require it */
-function setManualLocationMode() {
-  locationInput.style.display = "block";
-  locationInput.required = true;
-  autoStatus.textContent = "";
-  latHidden.value = "";
-  lonHidden.value = "";
-}
+Rendered Results:
+- All the correct information was actually displayed, and in the right format. There were only a few visual issues as well, likely due to a lack of specificity in my prompt.
+- The box containing the results was in the same dark, frosted style as the search box at the top, which I wanted a white box instead.
+- The "Show Venue Details" was turned into a button at the bottom, when it should've been just a clickable.
+- Once clicked on, the "Show Venue Details" actually also did display all the correct information, just not formatted correctly. All the links worked and took me to the right addresses.
 
-/* Hide the Location textbox + not required */
-function setAutoDetectMode() {
-  locationInput.style.display = "none";
-  locationInput.required = false;
-  autoStatus.textContent = "Using your current location.";
-}
+However, everything I specified clearly and detailed was accurately done.
 
-/* Keep the Location textbox in sync with the checkbox */
-function syncLocationField() {
-  if (autoDetect.checked) setAutoDetectMode();
-  else setManualLocationMode();
-}
 
-document.addEventListener("DOMContentLoaded", () => {
-  // ...
-  syncLocationField();
-});
 
-// Keep it in sync when the checkbox changes
+
+Fix (Correctness):
+I kept the AI's overall structure but corrected layout and behavior to match the spec and improve robustness. Some of the changes made include:
+
+1. Form layout and label placement:
+- I moved the labels above the textboxes and created a two-column grid for the "Distance" and "Category" fields with full-width rows where needed.
+
+Code:
+HTML:
+<!-- AI -->
+<div class="form-row">
+  <label for="keyword" class="label"><span class="label-text">Keyword</span><span class="req">*</span></label>
+  <input id="keyword" ... />
+</div>
+
+<!-- Mine -->
+<div class="grid">
+  <div class="field field-full">
+    <label for="keyword">Keyword <span class="req">*</span></label>
+    <input id="keyword" required />
+  </div>
+  <div class="field">
+    <label for="distance">Distance (miles)</label>
+    <input id="distance" type="number" value="10" />
+  </div>
+  <div class="field">
+    <label for="category">Category <span class="req">*</span></label>
+    <select id="category">...</select>
+  </div>
+</div>
+
+CSS:
+/* AI: row with side-by-side label/input */
+.form-row{grid-template-columns:150px 1fr}
+
+/* Mine: top-labels + two-column grid */
+.grid{display:grid;grid-template-columns:220px 1fr;gap:16px 18px}
+.field-full{grid-column:1/-1}
+
+
+2. Location and Auto-Detect:
+- I put the "Auto-detect your location" in the label line above the textbox, rather than inline with it.
+- I also kept the hidden lat/lon fields.
+
+Code:
+HTML:
+<div class="field field-full">
+  <div class="location-label">
+    <label for="location">Location <span class="req">*</span></label>
+    <label class="checkbox"><input type="checkbox" id="autoDetect"/><span>Auto-detect your location</span></label>
+  </div>
+  <input id="location" name="location" required />
+  <div id="autoStatus" class="hint" aria-live="polite"></div>
+</div>
+
+CSS:
+.location-label{display:flex;align-items:center;gap:12px;flex-wrap:nowrap}
+
+
+3. Checkbox-driven show/hide + validation sync:
+- I centralized the logic so the "Location" textbox visibility and "required" state to always match the checkbox.
+- I called it on load, on change, and after clear:
+
+Code:
+JavaScript:
+function setManualLocationMode(){ locationInput.style.display="block"; locationInput.required=true; autoStatus.textContent=""; latHidden.value=""; lonHidden.value=""; }
+function setAutoDetectMode(){ locationInput.style.display="none"; locationInput.required=false; autoStatus.textContent="Using your current location."; }
+function syncLocationField(){ autoDetect.checked ? setAutoDetectMode() : setManualLocationMode(); }
+
+document.addEventListener("DOMContentLoaded", syncLocationField);
 autoDetect.addEventListener("change", syncLocationField);
-
-// On CLEAR, reflect the (reset) checkbox state instead of forcing manual mode
-clearButton.addEventListener("click", () => {
-  // form.reset() already runs in your handler; then:
-  syncLocationField();
-});
+clearButton.addEventListener("click", () => { form.reset(); syncLocationField(); /* ... */ });
 
 
-This uses display: none so the field actually disappears (no whitespace), flips required to avoid hidden-field validation errors, updates the user hint, and clears stale coordinates when returning to manual mode.
+4. Button requirements and hover behavior:
+- I matched the buttons and hover behavior to the spec and video, including fully uppercase labels, removing the AI's additional hover feature, and keeping a more subtle brightness on hover.
 
-4. Explanation (Depth):
-Using display: none removes the field from layout, satisfying the “disappear” requirement, 
-while flipping required prevents HTML5 validation from blocking submits on hidden inputs. 
-Centralizing logic in syncLocationField() keeps state consistent on load, toggle, and clear, 
-avoids stale coordinates, reduces user confusion, and improves overall robustness and maintainability.
+Code:
+HTML:
+<button type="submit" class="btn btn-primary" id="searchBtn">SEARCH</button>
+<button type="button" id="clearButton" class="btn btn-secondary">CLEAR</button>
+
+CSS:
+/* AI: .btn:hover { transform: translateY(-1px); } */
+/* Mine: no hover movement; only brightness */
+.btn:hover{filter:brightness(1.06)}
+.btn:active{transform:translateY(1px)}
+
+
+5. Distance default/placeholder behavior:
+- Gray "10" until edited; returns to gray when cleared or reset.
+
+Code:
+CSS:
+.as-placeholder{color:#8a93a4}
+
+JavaScript:
+// On load, input, change, blur, and after Clear
+if (distanceInput.value === "" || distanceInput.value === "10") {
+  distanceInput.classList.add("as-placeholder");
+}
+
+
+6. Results visual design (white box vs. frosted):
+- I switched the results to a light table for improved readability and to better match the spec, and kept the search card frosted.
+
+Code:
+CSS:
+/* Mine */
+.table-wrap{background:#fff;color:#202733;border:1px solid #d9dbe1;border-radius:12px}
+th{background:#f2f4f8;font-weight:700}
+tbody tr:hover{background:#f9fbff}
+
+
+7. Venue details structure (two white boxes + centered header):
+- I moved the "Show Venue Details" toggle to outside of the event card and rendered the venue in two white boxes (outer shell and inner outlined card) with a centered, underlined title and smaller logo.
+
+Code:
+HTML:
+<div id="venueToggleBar" class="venue-toggle hidden"></div>
+<div id="venueCard" class="hidden"></div>
+
+CSS:
+.venue-shell{background:#fff;border:1px solid rgba(0,0,0,.15);border-radius:24px;padding:12px}
+.venue-card{background:#fff;border:2px solid #1d1d1d;border-radius:20px}
+.venue-card .name{ text-align:center; border-bottom:2px solid #222; }
+
+8. Accessibility and semantics:
+- I added "aria-live="polite"" for the status messages and results section, kept the labels/for attributes, and tightened headings for a clear hierarchy.
+
+
+9. Minor IDs and consistency:
+- I normalized the IDs and classes (such as searchBtn, actions-left, and msg classes), kept hidden fields (like lat, lon), and ensured responsive rules for single-column <= 720px.
+
+
+
+
+Explanation (Depth):
+By centralizing the checkbox → location behavior in syncLocationField() (with setManualLocationMode/setAutoDetectMode), I made the form’s required/visibility logic a single source of truth that runs on load, on change, and after clear. This removes inconsistent states (e.g., hidden but required inputs) and prevents stale lat/lon by clearing or populating the hidden fields at the right times. The distance “10” handling is implemented as deterministic state transitions (input/change/blur/reset) rather than ad-hoc styling, so defaults are restored correctly and parameters sent to the backend are predictable. Moving the venue toggle outside the event card is paired with explicit JS wiring that controls progressive loading (fetchAndShowVenue) without side effects, keeping DOM updates idempotent. Normalized IDs/classes and small, pure helpers improve readability and reduce duplication, while simple sort state ({key, dir}) and event delegation yield O(n log n) style sorting behavior without requerying data. These changes align the implementation with the spec and make the code easier to test and maintain.
