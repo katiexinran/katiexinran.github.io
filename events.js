@@ -284,7 +284,11 @@ function renderEventDetails(ev, venueNameForToggle){
   if (pillHtml) rows.push(row("Ticket Status", pillHtml));
   if (ev.buyUrl) rows.push(row("Buy Ticket At", `<a href="${escapeHtml(ev.buyUrl)}" target="_blank" rel="noopener">Ticketmaster</a>`));
 
-  const right = ev.seatmap ? `<div class="seatmap"><img src="${escapeHtml(ev.seatmap)}" alt="Seat map"></div>` : "";
+  const seatUrl = (ev.seatmap || "").trim();
+  const proxiedUrl = seatUrl ? `${API_BASE}/seatmap?url=${encodeURIComponent(seatUrl)}` : "";
+  const right = proxiedUrl
+    ? `<div class="seatmap"><img src="${proxiedUrl}" alt="Seat map" loading="lazy"></div>`
+    : "";
 
   detailsCard.innerHTML = `
     <div class="title">${escapeHtml(ev.name || "-")}</div>
@@ -295,6 +299,15 @@ function renderEventDetails(ev, venueNameForToggle){
   `;
   detailsCard.classList.remove("hidden");
   venueCard.classList.add("hidden");
+
+  // If the seat map fails to load (403/404), show a friendly placeholder
+  const seatImg = detailsCard.querySelector('.seatmap img');
+  if (seatImg) {
+    seatImg.addEventListener('error', () => {
+      const wrap = seatImg.closest('.seatmap');
+      if (wrap) wrap.innerHTML = '<div class="no-seatmap">Seat map not available.</div>';
+    }, { once: true });
+  }
 
   if (venueNameForToggle) {
     venueToggleBar.innerHTML = `
