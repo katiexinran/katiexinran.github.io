@@ -7,7 +7,7 @@ Flask backend for Events Search
 
 import os
 import requests
-from flask import Flask, send_from_directory, request, jsonify, Response
+from flask import Flask, send_from_directory, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__, static_folder=".", static_url_path="")
@@ -232,28 +232,6 @@ def venue():
 @app.get("/health")
 def health():
     return {"ok": True}
-
-# ----------------- Seatmap proxy (to avoid hotlinking issues) -----------------
-@app.get("/seatmap")
-def seatmap_proxy():
-    url = (request.args.get("url") or "").strip()
-    if not url:
-        return jsonify({"error": "seatmap url is required"}), 400
-    try:
-        # Some seatmap endpoints require a browser-like UA and a TM referrer.
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-            "Accept": "image/avif,image/webp,image/png,image/*,*/*;q=0.8",
-            "Referer": "https://www.ticketmaster.com/",
-            "Cache-Control": "no-cache",
-        }
-        r = requests.get(url, timeout=20, headers=headers, stream=True)
-        if not r.ok:
-            return jsonify({"error": f"seatmap fetch failed: HTTP {r.status_code}"}), r.status_code
-        content_type = r.headers.get("Content-Type", "image/png")
-        return Response(r.raw.read(), status=200, content_type=content_type)
-    except requests.RequestException as e:
-        return jsonify({"error": "seatmap fetch error", "details": str(e)}), 502
 
 if __name__ == "__main__":
     # You can also export TICKETMASTER_API_KEY in your environment instead of hardcoding it.
