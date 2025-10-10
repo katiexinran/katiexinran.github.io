@@ -326,6 +326,36 @@ table a.event-link:hover {
   color: #3367d6;           /* subtle blue hover like the reference video */
 }
 
+/* Center "Show Venue Details" with arrow below the text */
+#venueToggleBar {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 20px 0 0;
+}
+
+#venueToggleBar .venue-toggle-btn {
+  background: none;
+  border: 0;
+  color: #fff !important;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  text-align: center;
+  display: flex;
+  flex-direction: column; /* <-- stack arrow below text */
+  align-items: center;
+}
+
+#venueToggleBar .venue-toggle-btn .chev {
+  display: block;
+  margin-top: 4px;         /* small gap below text */
+  font-size: 1.2em;
+  transform: none;         /* remove the sideways offset */
+  opacity: 0.9;
+}
+
 
 
 /* ============== Responsive ============== */
