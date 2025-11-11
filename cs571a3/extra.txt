@@ -1,0 +1,7 @@
+AIzaSyAlIwx5AicjUiJge-ati0zNs8mfYq2BY2w
+3d5aa08629e9e7
+
+kxhancoc_db_user
+7VMteVjNhXy0n3KY
+
+mongodb+srv://kxhancoc_db_user:fJ8u577JoCJOiV7i@cluster0.j0a2zif.mongodb.net/?appName=Cluster0
