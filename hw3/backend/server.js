@@ -271,7 +271,7 @@ app.get('/api/artist_albums', async (req, res) => {
   }
 });
 
-// Geocoding endpoint
+// Geocoding endpoint (address to coordinates)
 app.get('/api/geocode', async (req, res) => {
   try {
     const { address } = req.query;
@@ -303,6 +303,57 @@ app.get('/api/geocode', async (req, res) => {
   } catch (error) {
     console.error('Geocoding error:', error.response?.data || error.message);
     res.status(500).json({ error: 'Failed to geocode location', success: false });
+  }
+});
+
+// Reverse geocoding endpoint (coordinates to address)
+app.get('/api/reverse-geocode', async (req, res) => {
+  try {
+    const { lat, lng } = req.query;
+    
+    if (!lat || !lng) {
+      return res.status(400).json({ error: 'Latitude and longitude are required' });
+    }
+    
+    if (!GOOGLE_MAPS_API_KEY) {
+      return res.status(503).json({ error: 'Google Maps API key not configured' });
+    }
+
+    const response = await axios.get(
+      'https://maps.googleapis.com/maps/api/geocode/json',
+      {
+        params: {
+          latlng: `${lat},${lng}`,
+          key: GOOGLE_MAPS_API_KEY
+        }
+      }
+    );
+
+    if (response.data.results && response.data.results[0]) {
+      // Extract city from address components
+      const result = response.data.results[0];
+      const addressComponents = result.address_components;
+      
+      // Try to find locality (city) first
+      let city = addressComponents.find(comp => comp.types.includes('locality'))?.long_name;
+      
+      // If no locality, try administrative_area_level_3 or administrative_area_level_2
+      if (!city) {
+        city = addressComponents.find(comp => comp.types.includes('administrative_area_level_3'))?.long_name ||
+               addressComponents.find(comp => comp.types.includes('administrative_area_level_2'))?.long_name;
+      }
+      
+      res.json({ 
+        city: city || result.formatted_address,
+        fullAddress: result.formatted_address,
+        success: true 
+      });
+    } else {
+      res.status(404).json({ error: 'Location not found', success: false });
+    }
+  } catch (error) {
+    console.error('Reverse geocoding error:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to reverse geocode location', success: false });
   }
 });
 

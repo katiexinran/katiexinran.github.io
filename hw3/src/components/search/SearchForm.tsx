@@ -101,7 +101,6 @@ export const SearchForm = ({ onSearch, isLoading, initialValues }: SearchFormPro
   useEffect(() => {
     if (autoDetect) {
       form.clearErrors("location");
-      form.setValue("location", "");
       detectLocation();
     } else {
       setDetectedCoords(null);
@@ -118,7 +117,24 @@ export const SearchForm = ({ onSearch, isLoading, initialValues }: SearchFormPro
         const [lat, lng] = data.loc.split(",");
         const coords = { lat: parseFloat(lat), lng: parseFloat(lng) };
         setDetectedCoords(coords);
-        form.setValue("location", "");
+        
+        // Reverse geocode to get city name
+        try {
+          const reverseGeoResponse = await fetch(
+            `${API_URL}/api/reverse-geocode?lat=${lat}&lng=${lng}`
+          );
+          const reverseGeoData = await reverseGeoResponse.json();
+          
+          if (reverseGeoData.success && reverseGeoData.city) {
+            form.setValue("location", reverseGeoData.city);
+          } else {
+            form.setValue("location", "");
+          }
+        } catch (reverseError) {
+          console.error("Failed to reverse geocode:", reverseError);
+          form.setValue("location", "");
+        }
+        
         return coords;
       }
     } catch (error) {
@@ -156,6 +172,7 @@ export const SearchForm = ({ onSearch, isLoading, initialValues }: SearchFormPro
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     let coords;
+    let locationName = values.location;
     
     if (values.autoDetect) {
       if (detectedCoords) {
@@ -163,6 +180,8 @@ export const SearchForm = ({ onSearch, isLoading, initialValues }: SearchFormPro
       } else {
         coords = await detectLocation();
       }
+      // Use the location from the form field (which was set by reverse geocoding)
+      locationName = form.getValues("location") || locationName;
     } else {
       coords = await geocodeLocation(values.location!);
     }
@@ -174,7 +193,7 @@ export const SearchForm = ({ onSearch, isLoading, initialValues }: SearchFormPro
         distance: values.distance,
         lat: coords.lat,
         lng: coords.lng,
-        location: values.location || "",
+        location: locationName,
         autoDetect: values.autoDetect,
       });
     }
