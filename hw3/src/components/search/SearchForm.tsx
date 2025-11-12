@@ -133,27 +133,23 @@ export const SearchForm = ({ onSearch, isLoading, initialValues }: SearchFormPro
 
   const geocodeLocation = async (address: string) => {
     try {
-      // Use backend proxy for geocoding if needed, or call Google Geocoding API directly
-      // For now, using a simpler approach with IPinfo or backend
-      // This is a placeholder - you might want to add a backend endpoint for this
+      // Use backend geocoding endpoint to keep API key secure
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-          address
-        )}&key=YOUR_GOOGLE_MAPS_API_KEY`
+        `${API_URL}/api/geocode?address=${encodeURIComponent(address)}`
       );
       const data = await response.json();
 
-      if (data.results && data.results[0]) {
-        const { lat, lng } = data.results[0].geometry.location;
-        return { lat, lng };
+      if (data.success && data.lat && data.lng) {
+        return { lat: data.lat, lng: data.lng };
       }
       
-      // Fallback: try to use backend or default coordinates
-      toast.error("Could not geocode location. Using default coordinates.");
+      // Fallback to default coordinates
+      console.warn("Could not geocode location, using default coordinates");
+      toast.error("Could not find location. Using default coordinates (Los Angeles).");
       return { lat: 34.0522, lng: -118.2437 }; // Los Angeles default
     } catch (error) {
       console.error("Geocoding error:", error);
-      toast.error("Failed to geocode location. Using default coordinates.");
+      toast.error("Failed to geocode location. Using default coordinates (Los Angeles).");
       return { lat: 34.0522, lng: -118.2437 };
     }
   };

@@ -3,7 +3,11 @@ const cors = require('cors');
 const axios = require('axios');
 const { MongoClient, ObjectId } = require('mongodb');
 const path = require('path');
+const dns = require('dns');
 require('dotenv').config();
+
+// Fix DNS resolution issues on Node.js 17+
+dns.setDefaultResultOrder('ipv4first');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -19,15 +23,29 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/ticket
 
 async function connectToMongoDB() {
   try {
-    const client = await MongoClient.connect(MONGODB_URI);
+    console.log('🔄 Attempting to connect to MongoDB Atlas...');
+    const client = await MongoClient.connect(MONGODB_URI, {
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+    });
     console.log('✅ Connected to MongoDB Atlas');
-    db = client.db('eventsaround');
+    db = client.db('hw3');
     favoritesCollection = db.collection('favorites');
     
     // Create index on eventId for faster queries
     await favoritesCollection.createIndex({ eventId: 1 }, { unique: true });
+    console.log('✅ Favorites collection initialized');
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
+    console.error('📋 Error code:', error.code || 'N/A');
+    console.error('📋 Error name:', error.name || 'N/A');
+    if (error.message.includes('ECONNREFUSED') || error.message.includes('querySrv')) {
+      console.log('💡 Possible solutions:');
+      console.log('   1. Whitelist your IP address in MongoDB Atlas Network Access');
+      console.log('   2. Check your internet connection');
+      console.log('   3. Verify the connection string in .env file');
+      console.log('   4. Check if your network/firewall blocks MongoDB Atlas');
+    }
     console.log('⚠️  Server will continue without database functionality');
   }
 }
@@ -38,6 +56,8 @@ connectToMongoDB();
 const TICKETMASTER_API_KEY = process.env.TICKETMASTER_API_KEY;
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
+const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+const IPINFO_TOKEN = process.env.IPINFO_TOKEN;
 
 // Validate API keys
 if (!TICKETMASTER_API_KEY) {
@@ -45,6 +65,9 @@ if (!TICKETMASTER_API_KEY) {
 }
 if (!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET) {
   console.error('❌ Spotify credentials are not set in environment variables');
+}
+if (!GOOGLE_MAPS_API_KEY) {
+  console.error('❌ GOOGLE_MAPS_API_KEY is not set in environment variables');
 }
 
 // Spotify token cache
@@ -245,6 +268,41 @@ app.get('/api/artist_albums', async (req, res) => {
   } catch (error) {
     console.error('Spotify albums error:', error.response?.data || error.message);
     res.status(500).json({ error: 'Failed to get albums' });
+  }
+});
+
+// Geocoding endpoint
+app.get('/api/geocode', async (req, res) => {
+  try {
+    const { address } = req.query;
+    
+    if (!address) {
+      return res.status(400).json({ error: 'Address is required' });
+    }
+    
+    if (!GOOGLE_MAPS_API_KEY) {
+      return res.status(503).json({ error: 'Google Maps API key not configured' });
+    }
+
+    const response = await axios.get(
+      'https://maps.googleapis.com/maps/api/geocode/json',
+      {
+        params: {
+          address: address,
+          key: GOOGLE_MAPS_API_KEY
+        }
+      }
+    );
+
+    if (response.data.results && response.data.results[0]) {
+      const { lat, lng } = response.data.results[0].geometry.location;
+      res.json({ lat, lng, success: true });
+    } else {
+      res.status(404).json({ error: 'Location not found', success: false });
+    }
+  } catch (error) {
+    console.error('Geocoding error:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to geocode location', success: false });
   }
 });
 
