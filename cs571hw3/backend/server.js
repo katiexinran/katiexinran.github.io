@@ -455,13 +455,16 @@ app.delete('/api/favorites/:id', async (req, res) => {
 // Serve Frontend Static Files
 // ============================================
 
-// Serve static files from the React app
-app.use(express.static(path.join(__dirname, '../dist')));
+// Serve static files from the built frontend in /public
+app.use(express.static(path.join(__dirname, 'public')));
 
-// The "catchall" handler: for any request that doesn't
-// match an API route, send back React's index.html file.
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Catchall handler for any unknown routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ============================================
