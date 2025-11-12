@@ -1,0 +1,93 @@
+1. Prompt (Clarity)
+Create a complete full-stack event-search web application that integrates the Ticketmaster, Spotify, Google Maps Geocoding, and IPinfo APIs.
+
+Backend (Node.js + Express):
+- Serve the React frontend and expose /api endpoints that proxy Ticketmaster calls (no direct frontend to Ticketmaster access).
+- Implement GET handlers for search, suggest, and event detail queries, plus MongoDB Atlas endpoints for favorites (add / remove / list).
+- Load environment variables via .env, manage CORS, and ensure safe secret storage.
+- Deployed later to Google Cloud Run or App Engine.
+
+Frontend (React + Vite + Tailwind + ShadCN UI):
+- Responsive design using Tailwind CSS and ShadCN (New York style preset).
+- Search form fields: Keywords (autosuggest), Distance (default 10 miles), Category (dropdown), Location (text or audio-detect via IPinfo).
+- Dynamic results grid (<= 20 cards) with Favorite heart icon.
+- Details page with tabs (Info / Artists / Venue), Spotify albums and popularity bars for music events, Facebook and Twitter share icons, and Google Map embeds.
+- Toast notifications for favorites using Sonner (added / removed / re-added).
+- Persist favorites to MongoDB Atlas and reload state on app start.
+
+Visual and Behavioral:
+- Include white card grid, teal labels, red * for required fields, orange "Search" button, blue "Clear" button, responsive mobile layout.
+
+
+2. Issues (Specificity)
+- Environment Variables Not Detected
+    ❌ TICKETMASTER_API_KEY is not set appeared even though .env existed.
+    Cause: dotenv.config() was missing or executed after variable access in server.js.
+- MongoDB Connection Failure
+    querySrv ECONNREFUSED _mongodb._tcp.cluster.mongodb.net during startup.
+    Cause: Mac DNS SRV resolution failed over mobile hotspot; needed explicit host URIs.
+- CORS and Port Mismatch
+    React on port 5173 and Express on 3001 caused blocked requests until proxy or CORS headers added.
+- Vite Build Errors and Missing Configs
+    After splitting into frontend/ and backend/, Vite showed TSConfckParseError: tsconfig.app.json not found and vite: command not found.
+    Cause: package.json and TypeScript configs were at root instead of inside frontend/.
+- Frontend Validation and Visual Feedback
+    SearchForm.tsx did not flag missing Location or Keyword fields; inputs lacked red border and error text.
+- Favorites Persistence and UI Sync
+    Toggling hearts did not update MongoDB or reload on page refresh — local state was lost.
+- Spotify and Venue Layout Misalignment
+    Artists tab overflowed beyond card width and Google Map iframe ignored border-radius constraints.
+- Deployment Config Mismatch
+    Google App Engine yaml not found by grader — backend and frontend served separately instead of bundled.
+
+
+3. Fix (Correctness)
+- dotenv Initialization
+    Placed "import dotenv from 'dotenv'; dotenv.config();" at the top of "server.js" before using "process.env".
+    Verified via console log and backend output:
+        ✅ API Keys loaded:
+        Ticketmaster: Loaded ✅
+        Spotify: Loaded ✅
+        Google Geocoding: Loaded ✅
+- MongoDB Connection (Direct URI)
+    Replaced SRV string with explicit replica URIs:
+        MONGODB_URI=mongodb://user:pass@ac-...-00-00.p8idqfz.mongodb.net:27017,...
+            /hw3?ssl=true&authSource=admin&retryWrites=true&w=majority
+    Tested via "test-mongo.js" to confirm authentication success and proper cluster handshake.
+- Proxy and CORS Alignment
+    Added to "vite.config.ts": server:{proxy:{'/api':'http://localhost:3001'}}
+    and in Express: app.use(cors({origin:'http://localhost:5173'}));
+    Resolved blocked requests and enabled smooth local development.
+- Frontend Project Structure Rebuild
+    Moved all frontend configs (tsconfig.app.json, tsconfig.node.json, package.json) into frontend/.
+    Reran npm install vite --save-dev then npm run dev - Vite now launches correctly on localhost.
+- Form Validation (Reactive)
+    Refactored "SearchForm.tsx" to use "react-hook-form" + "zodResolver".
+        const formSchema = z.object({
+        keyword:z.string().min(1,'Required'),
+        category:z.string().min(1,'Required'),
+        location:z.string().optional(),
+        });
+    Displayed <FormMessage> under each invalid field and styled input border red via Tailwind "focus:ring-destructive".
+- Favorites and Sonner Integration
+    Implemented MongoDB CRUD routes (/api/favorites).
+    Frontend used React context (FavoritesContext.tsx) to persist state and trigger notifications:
+        toast.success('Event added to Favorites!');
+        toast.error('Removed from Favorites!');
+    Ensured hearts sync across pages and reloads.
+- Spotify and Venue Card Layout
+    Wrapped Spotify album grid in overflow-hidden rounded-2xl shadow-sm and constrained iframe maps inside .venue-map { border-radius: 16px; }.
+    Aligned labels and values using grid templates for consistent column widths across tabs.
+- Deployment Bundling and Env Safety
+    Added "build": "vite build && cp -r dist ../backend/public" to frontend scripts and app.use(express.static('public')) to backend.
+    This ensured Google Cloud served both frontend and API under one origin without CORS errors.
+
+
+4. Explanation (Depth)
+Initializing dotenv early prevents undefined keys and guarantees API security on both local and cloud runs.
+Switching to direct MongoDB URIs bypasses DNS SRV failures and stabilizes Atlas connectivity over hotspots.
+Proxy alignment and Express CORS create a uniform origin model, simplifying deployment and avoiding blocked AJAX calls.
+By moving TypeScript configs into the frontend, Vite's dependency scanner can resolve module paths correctly, preventing TSConfck parse errors.
+Form validation with Zod ensures client-side correctness and user feedback.
+Using React context and Sonner toast notifications maintains state consistency and intuitive UX across routes while offloading animation logic to a tested library.
+Finally, co-locating frontend and backend build artifacts under Express streamlines Google Cloud deployment, guaranteeing a fully functional link that returns both HTML and JSON responses.
