@@ -45,6 +45,7 @@ export interface Event {
   _embedded?: {
     venues?: Array<{
       name?: string;
+      url?: string;
       address?: {
         line1?: string;
       };

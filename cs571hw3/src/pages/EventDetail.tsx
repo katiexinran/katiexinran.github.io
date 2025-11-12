@@ -9,6 +9,8 @@ import { EventVenue } from "@/components/event/EventVenue";
 import { FavoriteButton } from "@/components/event/FavoriteButton";
 import { toast } from "sonner";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
 const EventDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -16,12 +18,6 @@ const EventDetail = () => {
   const [event, setEvent] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMusicEvent, setIsMusicEvent] = useState(false);
-
-  // --- Restore scroll on mount ---
-  useEffect(() => {
-    const savedScroll = sessionStorage.getItem("searchScrollY");
-    if (savedScroll) window.scrollTo(0, parseInt(savedScroll));
-  }, []);
 
   useEffect(() => {
     if (id) {
@@ -31,7 +27,7 @@ const EventDetail = () => {
 
   const loadEventDetails = async (eventId: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/events/${eventId}`);
+      const response = await fetch(`${API_URL}/api/event_details/${eventId}`);
 
       if (!response.ok) {
         throw new Error("Failed to fetch event details");
@@ -51,13 +47,7 @@ const EventDetail = () => {
   };
 
   const handleBack = () => {
-    sessionStorage.setItem("searchScrollY", window.scrollY.toString());
-
-    if (location.state?.from === "favorites") {
-      navigate("/", { replace: true });
-      return;
-    }
-
+    // If we came from search with state, restore it
     if (location.state?.from === "search" && location.state?.searchData) {
       navigate("/", {
         state: {
@@ -67,13 +57,14 @@ const EventDetail = () => {
         },
       });
     } else {
-      navigate(-1);
+      // Otherwise just go back to search
+      navigate("/");
     }
   };
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="space-y-8">
         <div className="text-center py-12">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
         </div>
@@ -83,14 +74,14 @@ const EventDetail = () => {
 
   if (!event) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="space-y-8">
         <p className="text-center text-muted-foreground">Event not found</p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-6 py-8">
+    <div className="space-y-8">
       {/* Back Button */}
       <button
         onClick={handleBack}
@@ -101,14 +92,14 @@ const EventDetail = () => {
       </button>
 
       {/* --- HEADER --- */}
-      <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-8">
+      <div className="flex items-start justify-between gap-4 mb-8">
         {/* Event Title */}
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-black mb-4 md:mb-0">
+        <h1 className="flex-1 min-w-0 text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-black leading-tight">
           {event.name}
         </h1>
 
         {/* Top Right Buttons */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-shrink-0">
           {/* Buy Tickets Button */}
           {event.url && (
             <Button
@@ -119,14 +110,11 @@ const EventDetail = () => {
               <ExternalLink className="w-4 h-4" />
             </Button>
           )}
-
+          
           {/* Favorite Button (square outline) */}
-          <Button
-            variant="outline"
-            className="border border-black text-black hover:bg-gray-100 w-[42px] h-[42px] flex items-center justify-center rounded-md"
-          >
-            <FavoriteButton eventId={event.id} />
-          </Button>
+          <div className="flex items-center justify-center w-[42px] h-[42px] border border-black rounded-md hover:bg-gray-50 transition-colors">
+            <FavoriteButton eventId={event.id} eventName={event.name} />
+          </div>
         </div>
       </div>
 
@@ -142,9 +130,9 @@ const EventDetail = () => {
           <TabsTrigger
             value="artists"
             disabled={!isMusicEvent}
-            className="data-[state=active]:bg-white data-[state=active]:text-black font-semibold text-sm"
+            className="data-[state=active]:bg-white data-[state=active]:text-black font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Artist
+            Artist/Team
           </TabsTrigger>
           <TabsTrigger
             value="venue"

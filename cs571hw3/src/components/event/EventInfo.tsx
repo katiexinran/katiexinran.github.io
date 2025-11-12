@@ -1,127 +1,131 @@
 import { Event } from "@/types/event";
 import { Badge } from "@/components/ui/badge";
-import { Facebook, Twitter } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
+import { Facebook, Twitter } from "lucide-react";
+import { formatEventDate } from "@/lib/utils";
 
 interface EventInfoProps {
   event: Event;
 }
 
+function getStatusBadge(code?: string) {
+  if (!code) return null;
+  const normalized = code.toLowerCase();
+  if (normalized === 'onsale') {
+    return <Badge className="bg-emerald-500 text-white">On Sale</Badge>;
+  }
+  if (normalized === 'offsale') {
+    return <Badge variant="destructive">Off Sale</Badge>;
+  }
+  if (normalized === 'canceled' || normalized === 'cancelled') {
+    return <Badge className="bg-black text-white">Canceled</Badge>;
+  }
+  if (normalized === 'postponed' || normalized === 'rescheduled') {
+    return <Badge className="bg-orange-500 text-white">{normalized === 'postponed' ? 'Postponed' : 'Rescheduled'}</Badge>;
+  }
+  return null;
+}
+
 export const EventInfo = ({ event }: EventInfoProps) => {
-  const formatDateTime = () => {
-    if (!event.dates?.start?.localDate) return "Date TBA";
-    const date = new Date(event.dates.start.localDate);
-    const time = event.dates.start.localTime;
-    return time ? `${format(date, "MMM d, hh:mm a")}` : format(date, "MMM d");
-  };
+  const venue = event._embedded?.venues?.[0];
+  const attractions = event._embedded?.attractions ?? [];
+  const start = event.dates?.start;
+  const classifications = event.classifications?.[0];
 
-  const getStatusColor = (code?: string) => {
-    const statusMap: Record<string, string> = {
-      onsale: "bg-status-on-sale",
-      offsale: "bg-status-off-sale",
-      canceled: "bg-status-canceled",
-      postponed: "bg-status-postponed",
-      rescheduled: "bg-status-rescheduled",
-    };
-    return statusMap[code?.toLowerCase() || ""] || "bg-muted";
-  };
+  const artistNames = attractions.map((item: { name?: string }) => item?.name).filter(Boolean).join(', ');
+  const genreLabel = [
+    classifications?.segment?.name,
+    classifications?.genre?.name,
+    classifications?.subGenre?.name,
+    classifications?.type?.name,
+    classifications?.subType?.name,
+  ]
+    .filter((item): item is string => Boolean(item) && item !== 'Undefined')
+    .filter((item, index, array) => array.indexOf(item) === index)
+  .join(', ');
 
-  const getGenres = () => {
-    const classification = event.classifications?.[0];
-    if (!classification) return "";
-    
-    const parts = [
-      classification.segment?.name,
-      classification.genre?.name,
-      classification.subGenre?.name,
-      classification.type?.name,
-      classification.subType?.name,
-    ].filter(Boolean);
-    
-    return parts.join(", ");
-  };
-
-  const artists = event._embedded?.attractions?.map((a) => a.name).join(", ") || "TBA";
-  const venue = event._embedded?.venues?.[0]?.name || "Venue TBA";
-  const priceRange = event.priceRanges?.[0];
-
-  const shareOnTwitter = () => {
-    const text = `Check ${event.name} on Ticketmaster. ${event.url}`;
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
-  };
-
-  const shareOnFacebook = () => {
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(event.url || "")}`, "_blank");
-  };
+  const facebookShareUrl = event.url ? `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(event.url)}` : undefined;
+  const twitterShareUrl = event.url
+    ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check ${event.name} on Ticketmaster. ${event.url}`)}`
+    : undefined;
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+      <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
         <div className="space-y-4">
-          <div>
-            <h3 className="font-semibold text-sm text-muted-foreground mb-1">Date</h3>
-            <p>{formatDateTime()}</p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold text-sm text-muted-foreground mb-1">Artist/Team</h3>
-            <p>{artists}</p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold text-sm text-muted-foreground mb-1">Venue</h3>
-            <p>{venue}</p>
-          </div>
-
-          {getGenres() && (
-            <div>
-              <h3 className="font-semibold text-sm text-muted-foreground mb-1">Genres</h3>
-              <p>{getGenres()}</p>
+          {start?.localDate || start?.localTime ? (
+            <div className="text-sm">
+              <p className="font-semibold text-muted-foreground">Date</p>
+              <p>{formatEventDate(start?.localDate, start?.localTime)}</p>
             </div>
-          )}
-
-          {priceRange && (
-            <div>
-              <h3 className="font-semibold text-sm text-muted-foreground mb-1">Price Range</h3>
-              <p>
-                {priceRange.currency} ${priceRange.min} - ${priceRange.max}
-              </p>
+          ) : null}
+          {artistNames ? (
+            <div className="text-sm">
+              <p className="font-semibold text-muted-foreground">Artist</p>
+              <p>{artistNames}</p>
             </div>
-          )}
-
-          {event.dates?.status?.code && (
-            <div>
-              <h3 className="font-semibold text-sm text-muted-foreground mb-1">Ticket Status</h3>
-              <Badge className={getStatusColor(event.dates.status.code)}>
-                {event.dates.status.code}
-              </Badge>
+          ) : null}
+          {venue?.name ? (
+            <div className="text-sm">
+              <p className="font-semibold text-muted-foreground">Venue</p>
+              <p>{venue.name}</p>
             </div>
-          )}
-
+          ) : null}
+          {genreLabel ? (
+            <div className="text-sm">
+              <p className="font-semibold text-muted-foreground">Genres</p>
+              <p>{genreLabel}</p>
+            </div>
+          ) : null}
+          {event.priceRanges?.length ? (
+            <div className="text-sm">
+              <p className="font-semibold text-muted-foreground">Price Ranges</p>
+              <ul className="mt-1 space-y-1">
+                {event.priceRanges.map((range, index) => (
+                  <li key={`${range.type}-${index}`}>
+                    {range.type ? `${range.type}: ` : ''}
+                    {range.currency ?? 'USD'} {range.min ?? 'N/A'} - {range.max ?? 'N/A'}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {getStatusBadge(event.dates?.status?.code ?? undefined) ? (
+            <div className="text-sm">
+              <p className="font-semibold text-muted-foreground">Ticket Status</p>
+              <div className="mt-1">
+                {getStatusBadge(event.dates?.status?.code ?? undefined)}
+              </div>
+            </div>
+          ) : null}
           <div>
-            <h3 className="font-semibold text-sm text-muted-foreground mb-2">Share</h3>
-            <div className="flex gap-2">
-              <Button variant="outline" size="icon" onClick={shareOnFacebook}>
-                <Facebook className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon" onClick={shareOnTwitter}>
-                <Twitter className="h-4 w-4" />
-              </Button>
+            <p className="text-sm font-semibold text-muted-foreground mb-2">Share</p>
+            <div className="flex gap-3">
+              {facebookShareUrl ? (
+                <Button asChild variant="outline" size="icon">
+                  <a href={facebookShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook">
+                    <Facebook className="h-5 w-5" />
+                  </a>
+                </Button>
+              ) : null}
+              {twitterShareUrl ? (
+                <Button asChild variant="outline" size="icon">
+                  <a href={twitterShareUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on Twitter">
+                    <Twitter className="h-5 w-5" />
+                  </a>
+                </Button>
+              ) : null}
             </div>
           </div>
         </div>
-
-        {event.seatmap?.staticUrl && (
-          <div>
-            <h3 className="font-semibold text-sm text-muted-foreground mb-2">Seatmap</h3>
-            <img
-              src={event.seatmap.staticUrl}
-              alt="Seat map"
-              className="rounded-lg border w-full"
-            />
+        {event.seatmap?.staticUrl ? (
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-muted-foreground">Seatmap</p>
+            <div className="overflow-hidden rounded-lg border border-border bg-white">
+              <img src={event.seatmap.staticUrl} alt="Seatmap" className="h-full w-full object-contain" />
+            </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

@@ -1,22 +1,21 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Loader2, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Loader2, X, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 interface KeywordAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  /** NEW: allow parent to style the trigger so we can show red borders etc. */
   className?: string;
 }
 
@@ -29,113 +28,163 @@ export const KeywordAutocomplete = ({
   const [open, setOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [inputValue, setInputValue] = useState(value);
   const timeoutRef = useRef<NodeJS.Timeout>();
-
-  useEffect(() => {
-    setInputValue(value);
-  }, [value]);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+   const shouldAutoOpenRef = useRef(true);
 
   const fetchSuggestions = useCallback(async (keyword: string) => {
     if (!keyword || keyword.length < 2) {
       setSuggestions([]);
+      setOpen(false);
       return;
     }
 
     setIsLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:3001/api/events/suggest?keyword=${encodeURIComponent(keyword)}`
+        `${API_URL}/api/suggest?keyword=${encodeURIComponent(keyword)}`
       );
 
       if (response.ok) {
         const data = await response.json();
         const attractionNames = data._embedded?.attractions?.map((a: any) => a.name) || [];
-        setSuggestions([keyword, ...attractionNames]);
+        const allSuggestions = [keyword, ...attractionNames];
+        setSuggestions(allSuggestions);
+         if (allSuggestions.length > 0 && shouldAutoOpenRef.current) {
+           setOpen(true);
+        }
       }
     } catch (error) {
       console.error("Failed to fetch suggestions:", error);
       setSuggestions([keyword]);
+      if (shouldAutoOpenRef.current) {
+        setOpen(true);
+      }
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const handleInputChange = (newValue: string) => {
-    setInputValue(newValue);
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        !inputRef.current?.contains(event.target as Node)
+      ) {
+        shouldAutoOpenRef.current = false;
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
     onChange(newValue);
+    shouldAutoOpenRef.current = true;
 
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      fetchSuggestions(newValue);
-    }, 300);
+    
+    if (newValue.length >= 2) {
+      timeoutRef.current = setTimeout(() => {
+        fetchSuggestions(newValue);
+      }, 300);
+    } else {
+      shouldAutoOpenRef.current = false;
+      setSuggestions([]);
+      setOpen(false);
+    }
   };
 
   const handleClear = () => {
-    setInputValue("");
     onChange("");
     setSuggestions([]);
+    shouldAutoOpenRef.current = false;
+    setOpen(false);
+  };
+
+  const handleSelect = (selectedValue: string) => {
+    onChange(selectedValue);
+    shouldAutoOpenRef.current = false;
+    setOpen(false);
+  };
+
+  const handleChevronMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (open) {
+      shouldAutoOpenRef.current = false;
+      setOpen(false);
+      return;
+    }
+
+    shouldAutoOpenRef.current = true;
+    setOpen(true);
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <div className="relative">
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className={cn("w-full justify-between", className)}
-          >
-            <span className={cn(!inputValue && "text-muted-foreground")}>
-              {inputValue || placeholder}
-            </span>
-            <div className="flex items-center gap-2">
-              {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {inputValue && !isLoading && (
-                <X
-                  className="h-4 w-4 cursor-pointer hover:text-destructive"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleClear();
-                  }}
-                />
-              )}
-            </div>
-          </Button>
-        </div>
-      </PopoverTrigger>
-      <PopoverContent className="w-full p-0" align="start">
-        <Command>
-          <CommandInput
-            placeholder="Search events..."
-            value={inputValue}
-            onValueChange={handleInputChange}
+    <div className="relative">
+      <Input
+        ref={inputRef}
+        value={value}
+        onChange={handleInputChange}
+        placeholder={placeholder}
+        className={cn("pr-20", className)}
+      />
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
+        {value && (
+          <X
+            className="h-4 w-4 cursor-pointer hover:text-destructive text-muted-foreground"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClear();
+            }}
           />
-          <CommandList>
-            {suggestions.length === 0 && !isLoading && (
-              <CommandEmpty>No suggestions found.</CommandEmpty>
-            )}
-            {suggestions.length > 0 && (
+        )}
+        {isLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        ) : (
+          suggestions.length > 0 && (
+            <ChevronDown
+              className={cn(
+                "h-4 w-4 text-muted-foreground cursor-pointer transition-transform duration-200",
+                open && "rotate-180"
+              )}
+              onMouseDown={handleChevronMouseDown}
+            />
+          )
+        )}
+      </div>
+      
+      {open && suggestions.length > 0 && (
+        <div
+          ref={dropdownRef}
+          className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md"
+        >
+          <Command shouldFilter={false}>
+            <CommandList>
               <CommandGroup>
                 {suggestions.map((suggestion, index) => (
                   <CommandItem
                     key={`${suggestion}-${index}`}
                     value={suggestion}
-                    onSelect={(currentValue) => {
-                      onChange(currentValue);
-                      setInputValue(currentValue);
-                      setOpen(false);
-                    }}
+                    onSelect={() => handleSelect(suggestion)}
+                    className="cursor-pointer"
                   >
                     {suggestion}
                   </CommandItem>
                 ))}
               </CommandGroup>
-            )}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+            </CommandList>
+          </Command>
+        </div>
+      )}
+    </div>
   );
 };

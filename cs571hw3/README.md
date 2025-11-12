@@ -1,73 +1,128 @@
-# Welcome to your Lovable project
+# Events Around - CSCI 571 Assignment 3
 
-## Project info
+A full-stack event search application using Ticketmaster API, Spotify API, and MongoDB Atlas.
 
-**URL**: https://lovable.dev/projects/ac4e594e-da5d-4cb3-acda-e9c7386f0a49
+## ⚡ Quick Start
 
-## How can I edit this code?
+See [QUICK_START.md](./QUICK_START.md) for a 5-minute setup guide.
 
-There are several ways of editing your application.
+```powershell
+# 1. Install dependencies
+npm install
+cd backend && npm install && cd ..
 
-**Use Lovable**
+# 2. Configure .env files (see QUICK_START.md)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/ac4e594e-da5d-4cb3-acda-e9c7386f0a49) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# 3. Run (in separate terminals)
+cd backend && npm start           # Terminal 1: Backend
+npm run dev                       # Terminal 2: Frontend
 ```
 
-**Edit a file directly in GitHub**
+Visit: http://localhost:8080
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 📚 Documentation
 
-**Use GitHub Codespaces**
+- **[QUICK_START.md](./QUICK_START.md)** - Get started in 5 minutes
+- **[DEPLOYMENT_README.md](./DEPLOYMENT_README.md)** - Full documentation & deployment guide
+- **[TESTING_GUIDE.md](./TESTING_GUIDE.md)** - Comprehensive testing checklist
+- **[HW3 Rubric.pdf](./HW3%20Rubric.pdf)** - Assignment requirements & grading
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## ✨ Features
 
-## What technologies are used for this project?
+- 🔍 Search events by keyword, location, category, and distance
+- 📍 Auto-detect user location
+- ⭐ Add/remove favorites (MongoDB persistence)
+- 🎵 Spotify integration for music events
+- 🏟️ Venue details with Google Maps
+- 📱 Fully responsive (mobile & desktop)
+- 🔄 State preservation on navigation
+- 🔔 Toast notifications with undo
 
-This project is built with:
+## 🛠️ Tech Stack
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+**Frontend:** React, TypeScript, Vite, Tailwind CSS, Shadcn UI  
+**Backend:** Node.js, Express, MongoDB Atlas  
+**APIs:** Ticketmaster, Spotify, IPinfo
 
-## How can I deploy this project?
+## 📦 Project Structure
 
-Simply open [Lovable](https://lovable.dev/projects/ac4e594e-da5d-4cb3-acda-e9c7386f0a49) and click on Share -> Publish.
+```
+kate_hw_a3/
+├── backend/
+│   ├── server.js              # Express API server
+│   ├── package.json
+│   └── .env                   # Backend config (API keys)
+├── src/
+│   ├── components/            # React components
+│   │   ├── Navbar.tsx
+│   │   ├── event/             # Event detail components
+│   │   └── search/            # Search components
+│   ├── pages/                 # Route pages
+│   │   ├── Search.tsx
+│   │   ├── EventDetail.tsx
+│   │   └── Favorites.tsx
+│   ├── App.tsx                # Main app
+│   └── main.tsx               # Entry point
+├── .env                       # Frontend config
+├── app.yaml                   # Google Cloud deployment
+└── package.json
+```
 
-## Can I connect a custom domain to my Lovable project?
+## 🚀 Deployment
 
-Yes, you can!
+Deploy to Google Cloud App Engine:
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```powershell
+npm run build
+gcloud app deploy
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+See [DEPLOYMENT_README.md](./DEPLOYMENT_README.md) for detailed instructions.
+
+## 📝 API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/search` | GET | Search events |
+| `/api/suggest` | GET | Autocomplete |
+| `/api/event_details/:id` | GET | Event details |
+| `/api/artist_details` | GET | Spotify artist info |
+| `/api/artist_albums` | GET | Artist albums |
+| `/api/favorites` | GET/POST/DELETE | Manage favorites |
+
+## 🧪 Testing
+
+Follow the comprehensive testing guide: [TESTING_GUIDE.md](./TESTING_GUIDE.md)
+
+Key tests:
+- ✅ Search functionality
+- ✅ Autocomplete & auto-detect location  
+- ✅ Favorites (add/remove/undo)
+- ✅ Event details with tabs
+- ✅ Spotify & venue integration
+- ✅ Mobile responsiveness
+- ✅ State preservation
+
+## ⚠️ Prerequisites
+
+- Node.js >= 18.0.0
+- MongoDB Atlas account
+- API Keys: Ticketmaster, Spotify, IPinfo
+
+## 📞 Support
+
+Check these if you encounter issues:
+1. Console logs (F12 in browser)
+2. Backend terminal output
+3. Verify API keys in `.env` files
+4. Check MongoDB Atlas connection
+
+## 📄 License
+
+Educational project for CSCI 571 - Web Technologies
+
+---
+
+**Course:** CSCI 571 - Web Technologies  
+**Institution:** USC  
+**Assignment:** HW3 - Events Around Application

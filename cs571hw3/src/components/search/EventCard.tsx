@@ -1,8 +1,8 @@
 import { Event } from "@/types/event";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FavoriteButton } from "@/components/event/FavoriteButton";
-import { format } from "date-fns";
+import { formatEventDate } from "@/lib/utils";
 
 interface EventCardProps {
   event: Event;
@@ -10,44 +10,72 @@ interface EventCardProps {
   showRemoveButton?: boolean;
 }
 
+const toTitleCase = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+
 export const EventCard = ({ event, onClick, showRemoveButton }: EventCardProps) => {
   const imageUrl = event.images?.[0]?.url || "/placeholder.svg";
-  const category = event.classifications?.[0]?.segment?.name || "Event";
+  const rawCategory = event.classifications?.[0]?.segment?.name || "Event";
+  const category = toTitleCase(rawCategory);
   const venue = event._embedded?.venues?.[0]?.name || "Venue TBA";
   
-  const formatDateTime = () => {
-    if (!event.dates?.start?.localDate) return "Date TBA";
-    
-    const date = new Date(event.dates.start.localDate);
-    const time = event.dates.start.localTime;
-    
-    if (time) {
-      return `${format(date, "MMM d, hh:mm a")}`;
-    }
-    return format(date, "MMM d");
-  };
+  const dateLabel = formatEventDate(
+    event.dates?.start?.localDate,
+    event.dates?.start?.localTime
+  ) || "Date TBA";
 
   return (
-    <Card className="cursor-pointer hover:shadow-lg transition-shadow relative group">
-      <div onClick={onClick}>
-        <div className="aspect-video relative overflow-hidden rounded-t-lg">
-          <img
-            src={imageUrl}
-            alt={event.name}
-            className="object-cover w-full h-full"
-          />
+    <Card
+      className="group flex h-full flex-col overflow-hidden border-none p-0 shadow-lg transition-transform hover:-translate-y-1 hover:shadow-xl cursor-pointer"
+      onClick={onClick}
+    >
+      {/* Image with overlays */}
+      <div className="relative h-52 w-full overflow-hidden">
+        <img
+          src={imageUrl}
+          alt={event.name}
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+        />
+        
+        {/* Category badge - top left */}
+        <div className="absolute left-3 top-3">
+          <Badge
+            variant="secondary"
+            className="bg-white text-xs font-semibold text-foreground shadow-sm"
+          >
+            {category}
+          </Badge>
         </div>
-        <CardContent className="p-4">
-          <div className="flex justify-between items-start mb-2">
-            <Badge variant="secondary">{category}</Badge>
-            <span className="text-sm text-muted-foreground">{formatDateTime()}</span>
-          </div>
-          <h3 className="font-semibold text-lg mb-1 line-clamp-2">{event.name}</h3>
-          <p className="text-sm text-muted-foreground line-clamp-1">{venue}</p>
-        </CardContent>
+
+        {/* Date/Time badge - top right */}
+        <div className="absolute right-3 top-3">
+          <Badge
+            variant="secondary"
+            className="bg-white text-xs font-semibold text-foreground shadow-sm"
+          >
+            {dateLabel}
+          </Badge>
+        </div>
       </div>
-      <div className="absolute top-2 right-2" onClick={(e) => e.stopPropagation()}>
-        <FavoriteButton eventId={event.id} />
+
+      {/* Content section */}
+      <div className="flex items-start justify-between bg-white p-4">
+        <div className="min-w-0 flex-1">
+          <h3 className="text-lg font-semibold leading-tight text-gray-900">
+            {event.name}
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground truncate">
+            {venue}
+          </p>
+        </div>
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="ml-3 flex-shrink-0"
+        >
+          <FavoriteButton eventId={event.id} eventName={event.name} />
+        </div>
       </div>
     </Card>
   );
