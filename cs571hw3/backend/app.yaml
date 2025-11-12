@@ -12,24 +12,24 @@ env_variables:
 
 # Handlers
 handlers:
-  # Serve static assets (must be before catch-all)
+  # Serve static assets
   - url: /assets
-    static_dir: backend/public/assets
+    static_dir: public/assets
     secure: always
 
   - url: /robots.txt
-    static_files: backend/public/robots.txt
-    upload: backend/public/robots.txt
+    static_files: public/robots.txt
+    upload: public/robots.txt
     secure: always
 
   - url: /placeholder.svg
-    static_files: backend/public/placeholder.svg
-    upload: backend/public/placeholder.svg
+    static_files: public/placeholder.svg
+    upload: public/placeholder.svg
     secure: always
 
   - url: /favicon.ico
-    static_files: backend/public/favicon.ico
-    upload: backend/public/favicon.ico
+    static_files: public/favicon.ico
+    upload: public/favicon.ico
     secure: always
     expiration: "1d"
 

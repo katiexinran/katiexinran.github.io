@@ -1,0 +1,16 @@
+{
+  "name": "cs571hw3",
+  "version": "1.0.0",
+  "description": "Full-stack Ticketmaster Events Application",
+  "scripts": {
+    "install:all": "npm install --prefix frontend && npm install --prefix backend",
+    "build:frontend": "npm run build --prefix frontend",
+    "copy:frontend": "rm -rf backend/public/* && cp -r frontend/dist/* backend/public/",
+    "build": "npm run build:frontend && npm run copy:frontend",
+    "deploy": "npm run build && gcloud app deploy app.yaml --project=csci571hw3-katie",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "npm run dev --prefix backend",
+    "start:backend": "npm start --prefix backend"
+  },
+  "private": true
+}
