@@ -97,18 +97,18 @@ export const EventArtists = ({ event }: EventArtistsProps) => {
   return (
     <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
       <div className="space-y-8">
-        <div className="flex flex-col gap-4 [@media(min-width:430px)]:flex-row [@media(min-width:430px)]:items-start lg:gap-8">
+        <div className="flex flex-row gap-4 items-start lg:gap-8">
           {artistData.images?.[0]?.url ? (
             <img
               src={artistData.images[0].url}
               alt={artistData.name}
-              className="h-40 w-40 flex-shrink-0 object-cover"
+              className="h-32 w-32 sm:h-40 sm:w-40 flex-shrink-0 object-cover"
             />
           ) : null}
           <div className="flex-1 min-w-0 space-y-2">
-            <h2 className="text-xl font-semibold sm:text-2xl">{artistData.name}</h2>
-            <div className="space-y-1 text-sm text-muted-foreground sm:text-base">
-              <div className="flex items-center gap-x-6">
+            <h2 className="text-lg font-semibold sm:text-xl lg:text-2xl">{artistData.name}</h2>
+            <div className="space-y-1 text-xs text-muted-foreground sm:text-sm lg:text-base">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-x-6">
                 {artistData.followers?.total ? (
                   <p><span className="font-semibold">Followers:</span> {formatNumberWithCommas(artistData.followers.total)}</p>
                 ) : null}
@@ -121,7 +121,7 @@ export const EventArtists = ({ event }: EventArtistsProps) => {
               ) : null}
             </div>
             {artistData.external_urls?.spotify ? (
-              <Button asChild className="bg-black text-white hover:bg-black/90">
+              <Button asChild className="bg-black text-white hover:bg-black/90 text-xs sm:text-sm">
                 <a
                   href={artistData.external_urls.spotify}
                   target="_blank"
@@ -129,7 +129,7 @@ export const EventArtists = ({ event }: EventArtistsProps) => {
                   className="inline-flex items-center gap-2"
                 >
                   <span>Open in Spotify</span>
-                  <ExternalLink className="h-4 w-4" />
+                  <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
                 </a>
               </Button>
             ) : null}
